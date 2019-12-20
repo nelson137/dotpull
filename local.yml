@@ -2,4 +2,4 @@
 - hosts: all
   tasks:
   - name: Create test file
-    file: state=touch path=touched-by-ansible
+    file: state=touch path=~/touched-by-ansible
