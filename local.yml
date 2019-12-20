@@ -1,5 +1,9 @@
 ---
 - hosts: local
   tasks:
-  - name: Create test file
-    file: state=touch path=~/touched-by-ansible
+    - include_role:
+        name: "{{ item }}"
+      when: item == ansible_hostname
+      with_items:
+        - cantou
+        - pop-os
