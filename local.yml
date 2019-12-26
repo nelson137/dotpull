@@ -1,9 +1,0 @@
----
-- hosts: local
-  tasks:
-    - include_role:
-        name: "{{ item }}"
-      when: item == ansible_hostname
-      with_items:
-        - cantou
-        - pop-os

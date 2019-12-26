@@ -1,4 +1,0 @@
-- shell: echo 'this is pop'
-  register: output
-
-- debug: var=output.stdout_lines
