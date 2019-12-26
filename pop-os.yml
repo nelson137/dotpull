@@ -1,3 +1,10 @@
 ---
 - hosts: local
   become: yes
+
+  roles:
+    - role: apt-packages
+      vars:
+        system_specific:
+          - scrot
+          - vlc

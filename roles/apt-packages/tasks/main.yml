@@ -1,0 +1,26 @@
+- name: Install packages
+  apt:
+    state: latest
+    name:
+      - boxes
+      - build-essential
+      - cmake
+      - git
+      - golang-go
+      - jq
+      - lolcat
+      - nmap
+      - software-properties-common
+      - texlive
+      - texlive-latex-extra
+      - vim
+      - zip
+
+- name: Install system-specific packages
+  apt:
+    state: latest
+    name: "{{ system_specific }}"
+
+- name: Remove unused dependencies
+  apt:
+    autoremove: yes
