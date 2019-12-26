@@ -1,0 +1,5 @@
+- name: Install packages
+  snap:
+    state: present
+    name:
+      - spotify
