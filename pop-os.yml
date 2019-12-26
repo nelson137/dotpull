@@ -4,7 +4,6 @@
 
   roles:
     - role: apt-packages
-      vars:
-        system_specific:
-          - scrot
-          - vlc
+      system_specific:
+        - scrot
+        - vlc
