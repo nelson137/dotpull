@@ -19,7 +19,7 @@
 - name: Install system-specific packages
   apt:
     state: latest
-    name: "{{ system_specific }}"
+    name: "{{ system_specific | default([]) }}"
 
 - name: Remove unused dependencies
   apt:
