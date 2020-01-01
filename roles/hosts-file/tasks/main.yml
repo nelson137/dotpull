@@ -1,0 +1,16 @@
+- name: Copy template
+  template:
+    src: hosts.j2
+    dest: /etc/hosts
+
+- name: Detect cloud-init
+  register: cloud_cfg
+  stat:
+    path: /etc/cloud/cloud.cfg
+
+- name: Prevent cloud-init from modifying hostname
+  lineinfile:
+    path: "{{ cloud_cfg.stat.path }}"
+    regexp: "^preserve_hostname: false"
+    line: "preserve_hostname: true"
+  when: cloud_cfg.stat.exists
