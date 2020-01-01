@@ -1,0 +1,4 @@
+- name: Copy config file
+  copy:
+    src: .selected_editor
+    dest: "{{ ansible_user_dir }}/.selected_editor"
