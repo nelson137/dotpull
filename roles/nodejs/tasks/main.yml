@@ -1,0 +1,25 @@
+- set_fact:
+    nodejs_script: /tmp/nodejs-setup
+
+- name: Get latest version
+  register: nodejs_version
+  shell: curl -s https://nodejs.org/dist/latest/SHASUMS256.txt | sed -nE '1s/.*-v([0-9]+).*/\1/p'
+  args:
+    warn: no
+
+- name: Download setup script
+  get_url:
+    url: "https://deb.nodesource.com/setup_{{ nodejs_version.stdout }}.x"
+    dest: "{{ nodejs_script }}"
+    mode: +x
+
+- name: Execute setup script
+  command: "{{ nodejs_script }}"
+
+- name: Remove setup script
+  file:
+    path: "{{ nodejs_script }}"
+    state: absent
+
+- name: Install
+  apt: name=nodejs state=latest
