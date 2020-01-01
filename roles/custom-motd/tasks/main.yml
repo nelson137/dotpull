@@ -1,0 +1,31 @@
+- name: Disable news
+  lineinfile:
+    path: /etc/default/motd-news
+    regexp: "^(ENABLED)=1"
+    line: "\1=0"
+
+- name: Disable scripts
+  file:
+    path: "/etc/update-motd.d/{{ item }}"
+    mode: -x
+  loop:
+    - 10-help-text
+    - 50-motd-news
+    - 51-cloudguest
+
+- name: Install custom header script
+  copy:
+    src: "{{ motd_script }}"
+    dest: /etc/update-motd.d/00-custom-header
+    mode: u=rwx,g=rx,o=rx
+  when: motd_script is defined
+
+- name:
+  command: run-parts /etc/update-motd.d
+
+- name: Install cron job
+  become: yes
+  cron:
+    name: Cache external ip address for motd
+    minute: "*/10"
+    job: dig +short myip.opendns.com @resolver1.opendns.com >/etc/update-motd.d/.external-ip

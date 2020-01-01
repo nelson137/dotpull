@@ -1,0 +1,48 @@
+#!/bin/sh
+
+TERM_WIDTH="$(tput cols)"
+
+rand_choice() {
+    shift $(awk -v n=$# 'BEGIN { srand(); print int(n*rand()) }')
+    echo "$1"
+}
+
+center() {
+    awk -v term_w=$TERM_WIDTH '
+        {
+            lines[++nlines] = $0
+            widths[nlines] = length
+        }
+        END {
+            max = widths[asort(widths)]
+            offset = int((term_w-max) / 2)
+            for (i=1; i<=nlines; i++) {
+                if (offset > 0) printf "%*s", offset, " "
+                printf "%s", lines[i]
+                printf "\n"
+            }
+        }'
+}
+
+maybe_colorize() {
+    color_seed="$(rand_choice 39 49 60)"
+    which lolcat >/dev/null 2>&1 && lolcat -fS "$color_seed" || cat
+}
+
+gen_box() {
+    . /etc/os-release
+    boxes -d parchment -p h2b1 <<EOF
+Distro: $PRETTY_NAME
+Hostname: $(hostname)
+Internal IP: $(hostname -I)
+External IP: $(cat /etc/update-motd.d/.external-ip 2>/dev/null)
+Date: $(date +'%b %d, %Y')
+Time: $(date +%r)
+EOF
+}
+
+art_file="$(rand_choice animal-skull fleur-de-lis)"
+{
+    center < "$art_file"
+    gen_box | center
+} | maybe_colorize
