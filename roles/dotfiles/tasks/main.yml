@@ -2,16 +2,16 @@
   git:
     clone: yes
     repo: https://github.com/nelson137/.dot
-    dest: ~/.dot
+    dest: "{{ ansible_user_dir }}/.dot"
 
 - name: Install dotfiles
-  command: ~/.dot/deploy.sh
+  command: "{{ ansible_user_dir }}/.dot/deploy.sh"
 
 - name: Install Vundle
   git:
     clone: yes
     repo: https://github.com/VundleVim/Vundle.vim
-    dest: ~/.vim/bundle/Vundle.vim
+    dest: "{{ ansible_user_dir }}/.vim/bundle/Vundle.vim"
     depth: 1
 
 - name: Install vim plugins
