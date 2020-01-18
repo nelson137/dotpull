@@ -1,0 +1,5 @@
+- name: Copy script
+  become: yes
+  copy:
+    src: dotpull
+    dest: /var/www/html/dotpull
