@@ -1,3 +1,4 @@
 - name: Update
+  become: yes
   hostname:
     name: "{{ new_hostname }}"

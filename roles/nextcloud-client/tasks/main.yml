@@ -4,4 +4,5 @@
     update_cache: yes
 
 - name: Install client
+  become: yes
   apt: name=nextcloud-client state=latest

@@ -1,7 +1,9 @@
 - name: Install dependencies
+  become: yes
   apt: name=apt-transport-https state=latest
 
 - name: Add apt source
+  become: yes
   copy:
     src: sublime.list
     dest: /etc/apt/sources.list.d/sublime.list
@@ -12,4 +14,5 @@
     update_cache: yes
 
 - name: Install
+  become: yes
   apt: name=sublime-text state=latest

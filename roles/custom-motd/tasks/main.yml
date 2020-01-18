@@ -1,10 +1,12 @@
 - name: Disable news
+  become: yes
   lineinfile:
     path: /etc/default/motd-news
     regexp: "^(ENABLED)=1"
     line: "\1=0"
 
 - name: Disable scripts
+  become: yes
   file:
     path: "/etc/update-motd.d/{{ item }}"
     mode: -x
@@ -14,6 +16,7 @@
     - 51-cloudguest
 
 - name: Install custom header script
+  become: yes
   copy:
     src: "{{ motd_script }}"
     dest: /etc/update-motd.d/00-custom-header
@@ -21,6 +24,7 @@
   when: motd_script is defined
 
 - name:
+  become: yes
   command: run-parts /etc/update-motd.d
 
 - name: Install cron job

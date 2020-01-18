@@ -1,4 +1,5 @@
 - name: Install packages
+  become: yes
   snap:
     state: present
     name:
