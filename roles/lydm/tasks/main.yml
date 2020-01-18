@@ -1,0 +1,53 @@
+- name: Install dependencies
+  become: yes
+  apt:
+    state: latest
+    name:
+      - libpam0g-dev
+      - libxcb1-dev
+
+- name: lydm repository
+  vars:
+    ly_dir: /tmp/ly
+  block:
+
+    - name: Clone repo
+      git:
+        clone: yes
+        repo: https://github.com/cylgom/ly
+        dest: "{{ ly_dir }}"
+
+    - name: Clone repo submodules
+      make:
+        chdir: "{{ ly_dir }}"
+        target: github
+
+    - name: Compile
+      make:
+        chdir: "{{ ly_dir }}"
+
+    - name: Install
+      become: yes
+      make:
+        chdir: "{{ ly_dir }}"
+        target: install
+
+    - name: Remove repo
+      file:
+        name: "{{ ly_dir }}"
+        state: absent
+
+- name: Detect old display manager service
+  become: yes
+  register: has_old_dm
+  command: systemctl is-enabled display-manager
+  failed_when: false
+
+- name: Disable old display manager
+  become: yes
+  service: name=display-manager enabled=no
+  when: has_old_dm.rc == 0
+
+- name: Enable service
+  become: yes
+  service: name=ly enabled=yes
