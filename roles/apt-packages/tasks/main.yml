@@ -3,8 +3,10 @@
   apt:
     state: latest
     name:
+      - apt-transport-https
       - boxes
       - build-essential
+      - ca-certificates
       - cmake
       - git
       - golang-go
@@ -12,8 +14,10 @@
       - lolcat
       - nmap
       - software-properties-common
+      - tar
       - texlive
       - texlive-latex-extra
+      - unzip
       - vim
       - zip
 
