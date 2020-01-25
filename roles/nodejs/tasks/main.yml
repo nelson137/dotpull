@@ -11,6 +11,7 @@
     mode: +x
 
 - name: Execute setup script
+  become: yes
   command: "{{ nodejs_script }}"
 
 - name: Remove setup script
@@ -19,4 +20,5 @@
     state: absent
 
 - name: Install
+  become: yes
   apt: name=nodejs state=latest
