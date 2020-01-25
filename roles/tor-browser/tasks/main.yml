@@ -1,25 +1,24 @@
-- set_fact:
-    tor_url: https://dist.torproject.org/torbrowser/
-
-- name: Get latest version
+- name: Determine latest version
   register: tor_version
   shell: curl -s "{{ tor_url }}" | sed -nE 's/.*<a[^>]+>([0-9\.]+)\/<\/a>.*/\1/p' | sort -n | tail -1
   args:
     warn: no
 
-- set_fact:
-    asset_name: "tor-browser-linux64-{{ tor_version.stdout }}_en-US.tar.xz"
-
-- name: Download
-  get_url:
-    url: "{{ tor_url }}{{ tor_version.stdout }}/{{ asset_name }}"
-    dest: "/tmp/{{ asset_name }}"
-
 - name: Install
-  unarchive:
-    src: "/tmp/{{ asset_name }}"
-    dest: "{{ ansible_user_dir }}/.tor"
-    remote_src: yes
+  vars:
+    asset_name: "tor-browser-linux64-{{ tor_version.stdout }}_en-US.tar.xz"
+  block:
+
+    - name: Download
+      get_url:
+        url: "{{ tor_url }}{{ tor_version.stdout }}/{{ asset_name }}"
+        dest: "/tmp/{{ asset_name }}"
+
+    - name: Install
+      unarchive:
+        src: "/tmp/{{ asset_name }}"
+        dest: "{{ ansible_user_dir }}/.tor"
+        remote_src: yes
 
 - name: Register app
   command: "{{ ansible_user_dir }}/.tor/Browser/start-tor-browser" --register-app

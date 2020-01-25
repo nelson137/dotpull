@@ -1,7 +1,4 @@
-- set_fact:
-    nodejs_script: /tmp/nodejs-setup
-
-- name: Get latest version
+- name: Determine latest version
   register: nodejs_version
   shell: curl -s https://nodejs.org/dist/latest/SHASUMS256.txt | sed -nE '1s/.*-v([0-9]+).*/\1/p'
   args:

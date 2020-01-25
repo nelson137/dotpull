@@ -1,7 +1,6 @@
 - name: Add apt repository
-  apt_repository:
-    repo: ppa:nextcloud-devs/client
-    update_cache: yes
+  become: yes
+  apt_repository: repo=ppa:nextcloud-devs/client
 
 - name: Install client
   become: yes

@@ -1,12 +1,10 @@
-- set_fact:
-    etcher_url: https://github.com/balena-io/etcher/releases/latest
-
-- name: Get latest version
+- name: Determine latest version
   register: etcher_version
   shell:
     cmd: curl -svL "{{ etcher_url }}" 2>&1 | awk '/^> GET/{u=$3} END{print gensub(/.*v([0-9\.]+)$/, "\\1", "g", u)}'
     warn: no
 
 - name: Download and install
+  become: yes
   apt:
     deb: "{{ etcher_url }}/download/balena-etcher-electron_{{ etcher_version.stdout }}_amd64.deb"
