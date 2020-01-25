@@ -1,0 +1,12 @@
+- name: Get latest download url
+  shell:
+    cmd: curl -sL https://api.github.com/repos/docker/compose/releases/latest | jq -r '.assets[] | select(.name|endswith("Linux-x86_64")) | .browser_download_url'
+    warn: no
+  register: download_url
+
+- name: Download and install
+  become: yes
+  get_url:
+    url: "{{ download_url.stdout }}"
+    dest: /usr/local/bin/docker-compose
+    mode: 0755
