@@ -4,6 +4,8 @@
     state: latest
     name:
       - apt-transport-https
+      - autoconf
+      - automake
       - boxes
       - build-essential
       - ca-certificates
