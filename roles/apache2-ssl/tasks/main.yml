@@ -6,7 +6,7 @@
   become: yes
   copy: src=docker-compose.yml dest=/docker/letsencrypt/docker-compose.yml
 
-- name: Copy letsencrypt command script
+- name: Copy LetsEncrypt command script
   become: yes
   template: src=le-cmd.j2 dest=/docker/letsencrypt/le-cmd mode=0775
 
@@ -25,30 +25,30 @@
   become: yes
   service: name=apache2 state=stopped
 
-- name: Start letsencrypt challenge container
+- name: Start LetsEncrypt challenge container
   become: yes
   docker_compose: project_src=/docker/letsencrypt
 
-- name: Get letsencrypt certificate
+- name: Get LetsEncrypt certificate
   become: yes
   block:
 
-    - name: Get test letsencrypt certificate
+    - name: Get test LetsEncrypt certificate
       command:
         cmd: /docker/letsencrypt/le-cmd cert-get --staging
         creates: "/etc/letsencrypt/live/{{ domain }}"
 
-    - name: Revoke and delete test letsencrypt certificate
+    - name: Revoke and delete test LetsEncrypt certificate
       command:
         cmd: /docker/letsencrypt/le-cmd cert-revoke --staging
         removes: "/etc/letsencrypt/live/{{ domain }}"
 
-    - name: Get letsencrypt certificate
+    - name: Get LetsEncrypt certificate
       command:
         cmd: /docker/letsencrypt/le-cmd cert-get
         creates: "/etc/letsencrypt/live/{{ domain }}"
 
-- name: Stop and remove letsencrypt challenge container
+- name: Stop and remove LetsEncrypt challenge container
   become: yes
   docker_compose: project_src=/docker/letsencrypt state=absent
 
@@ -59,7 +59,7 @@
 - name: Install cron job to renew the certificate
   become: yes
   cron:
-    name: renew letsencrypt certificate
+    name: renew LetsEncrypt certificate
     user: root
     minute: '0'
     hour: '23'
