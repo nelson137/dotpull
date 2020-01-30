@@ -65,6 +65,13 @@
     hour: '23'
     job: /docker/letsencrypt/le-cmd cert-renew
 
+- name: Disable apache ServerToken
+  become: yes
+  lineinfile:
+    path: /etc/apache2/conf-available/security.conf
+    regexp: '^ServerTokens .*'
+    line: ServerTokens ProductOnly
+
 - name: Generate Diffie-Hellman parameters
   become: yes
   openssl_dhparam:
