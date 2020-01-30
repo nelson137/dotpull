@@ -6,13 +6,13 @@
   become: yes
   copy: src=docker-compose.yml dest=/docker/letsencrypt/docker-compose.yml
 
-- name: Copy LetsEncrypt command script
-  become: yes
-  template: src=le-cmd.j2 dest=/docker/letsencrypt/le-cmd mode=0775
-
 - name: Copy nginx config for challenge
   become: yes
   template: src=nginx.conf.j2 dest=/docker/letsencrypt/nginx.conf
+
+- name: Copy LetsEncrypt command script
+  become: yes
+  template: src=le-cmd.j2 dest=/docker/letsencrypt/le-cmd mode=0775
 
 - name: Install dependencies for ansible docker modules
   become: yes
