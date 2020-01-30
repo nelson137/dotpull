@@ -1,0 +1,64 @@
+#!/bin/bash
+
+DOMAIN="{{ domain }}"
+STAGING=
+CMD=( )
+CHALLENGER_PATH=/docker/letsencrypt
+
+usage() {
+    echo "Usage: $0 { challenger-up | challenger-down | cert-view | cert-get | cert-revoke | cert-renew }"
+    exit "${1:-0}"
+}
+
+certbot-docker() {
+    docker run --rm --name certbot \
+        -v /etc/letsencrypt:/etc/letsencrypt \
+        -v /var/lib/letsencrypt:/var/lib/letsencrypt \
+        -v /var/log/letsencrypt:/var/log/letsencrypt \
+        -v /data/letsencrypt:/data/letsencrypt \
+        certbot/certbot "$@"
+}
+
+challenger-up() {
+    docker-compose -f "$CHALLENGER_PATH" up -d
+}
+
+challenger-down() {
+    docker-compose -f "$CHALLENGER_PATH" down
+}
+
+cert-view() {
+    certbot certificates
+}
+
+cert-get() {
+    certbot certonly --cert-name "$DOMAIN" \
+        --webroot -w /data/letsencrypt \
+        -d "$DOMAIN,www.$DOMAIN,cloud.$DOMAIN,www.cloud.$DOMAIN" \
+        --agree-tos --register-unsafely-without-email \
+        "$@"
+}
+
+cert-revoke() {
+    certbot-docker revoke --cert-name "$DOMAIN" \
+        --delete-after-revoke --noninteractive \
+        "$@"
+}
+
+cert-renew() {
+    certbot-docker renew --cert-name "$DOMAIN" --webroot -w /data/letsencrypt
+}
+
+while [ $# -ne 0 ]; do
+    case "$1" in
+        -h|--help) CMD=( usage ) ;;
+        *)         CMD+=( "$1" ) ;;
+    esac
+    shift
+done
+
+(( ${{ '{#' }}CMD[@]} == 0 )) && CMD=( usage )
+
+# If the command if it is a defined function execute it
+# Otherwise show usage and error out
+declare -F | grep -q "$1" && eval "$CMD" || usage 1

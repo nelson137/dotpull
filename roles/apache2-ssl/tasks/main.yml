@@ -6,6 +6,10 @@
   become: yes
   copy: src=docker-compose.yml dest=/docker/letsencrypt/docker-compose.yml
 
+- name: Copy letsencrypt command script
+  become: yes
+  template: src=le-cmd.j2 dest=/docker/letsencrypt/le-cmd mode=0775
+
 - name: Copy nginx config for challenge
   become: yes
   template: src=nginx.conf.j2 dest=/docker/letsencrypt/nginx.conf
@@ -27,24 +31,21 @@
 
 - name: Get letsencrypt certificate
   become: yes
-  vars:
-    certbot_cmd: "docker run --rm --name certbot -v /etc/letsencrypt:/etc/letsencrypt -v /var/lib/letsencrypt:/var/lib/letsencrypt -v /var/log/letsencrypt:/var/log/letsencrypt -v /data/letsencrypt:/data/letsencrypt certbot/certbot"
-    certonly_args: "--webroot -w /data/letsencrypt --cert-name {{ domain }} -d {{ domain }},cloud.{{ domain }},www.{{ domain }},www.cloud.{{ domain }} --agree-tos --register-unsafely-without-email"
   block:
 
     - name: Get test letsencrypt certificate
       command:
-        cmd: "{{ certbot_cmd }} certonly {{ certonly_args }} --staging"
+        cmd: /docker/letsencrypt/le-cmd cert-get --staging
         creates: "/etc/letsencrypt/live/{{ domain }}"
 
     - name: Revoke and delete test letsencrypt certificate
       command:
-        cmd: "{{ certbot_cmd }} revoke --cert-name {{ domain }} --delete-after-revoke --noninteractive --staging"
+        cmd: /docker/letsencrypt/le-cmd cert-revoke --staging
         removes: "/etc/letsencrypt/live/{{ domain }}"
 
     - name: Get letsencrypt certificate
       command:
-        cmd: "{{ certbot_cmd }} certonly {{ certonly_args }}"
+        cmd: /docker/letsencrypt/le-cmd cert-get
         creates: "/etc/letsencrypt/live/{{ domain }}"
 
 - name: Stop and remove letsencrypt challenge container
@@ -62,7 +63,7 @@
     user: root
     minute: '0'
     hour: '23'
-    job: docker run --rm --name certbot-renew -v /etc/letsencrypt:/etc/letsencrypt -v /var/lib/letsencrypt:/var/lib/letsencrypt -v /var/log/letsencrypt:/var/log/letsencrypt -v /data/letsencrypt:/data/letsencrypt certbot/certbot renew --webroot -w /data/letsencrypt --quiet
+    job: /docker/letsencrypt/le-cmd cert-renew
 
 - name: Generate Diffie-Hellman parameters
   become: yes
