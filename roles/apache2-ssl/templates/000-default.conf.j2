@@ -1,0 +1,37 @@
+Header always set Strict-Transport-Security "max-age=31536000; includeSubdomains"
+
+<VirtualHost *:80>
+	ServerName {{ domain }}
+	ServerAlias www.{{ domain }}
+	RewriteEngine on
+	RewriteCond %{HTTP_HOST} ^(www\.)?{{ domain | replace('.', '\.') }} [NC]
+	RewriteRule ^.*$ https://{{ domain }}%{REQUEST_URI} [L,NE,R=301]
+</VirtualHost>
+
+SSLStaplingCache "shmcb:/run/oscp(150000)"
+<VirtualHost *:443>
+	ServerName {{ domain }}
+	ServerAlias www.{{ domain }}
+
+	RewriteEngine on
+	RewriteCond %{HTTP_HOST} ^www\.{{ domain | replace('.', '\.') }} [NC]
+	RewriteRule ^.*$ https://{{ domain }}%{REQUEST_URI} [L,NE,R=301]
+
+	Header always set X-XSS-Protection "1; mode=block"
+	Header always set X-Content-Type-Options "nosniff"
+	Header always set X-Frame-Options "DENY"
+	Header always set Referrer-Policy "strict-origin-when-cross-origin"
+	Header always set Content-Security-Policy "default-src 'self'; script-src 'self'; connect-src 'self'; font-src 'self' data: https://fonts.gstatic.com; img-src 'self'; style-src 'self' https://fonts.gstatic.com 'sha256-fd43ZAy0+L35lLpKUV0VEL6rvVBrWAIxMHE1UJdL3yU='"
+	Header always set Feature-Policy "camera 'none'; fullscreen 'none'; geolocation 'none'; microphone 'none'; payment 'none'; speaker 'none'; usb 'none'; vibrate 'none'; vr 'none'"
+
+	SSLEngine on
+	SSLUseStapling on
+	Include /etc/apache2/ssl-options.conf
+
+	DocumentRoot /var/www/html
+
+	ErrorLog ${APACHE_LOG_DIR}/error.log
+	CustomLog ${APACHE_LOG_DIR}/access.log combined
+</VirtualHost>
+
+# vim: syntax=apache ts=4 sw=4 sts=4 sr noet

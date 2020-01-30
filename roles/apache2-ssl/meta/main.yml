@@ -1,0 +1,5 @@
+---
+dependencies:
+  - apache2
+  - docker
+  - docker-compose

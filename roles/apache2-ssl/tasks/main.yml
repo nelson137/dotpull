@@ -1,0 +1,103 @@
+- name: Create challenge container directory
+  become: yes
+  file: path=/docker/letsencrypt state=directory
+
+- name: Copy docker-compose definition for challenge container
+  become: yes
+  copy: src=docker-compose.yml dest=/docker/letsencrypt/docker-compose.yml
+
+- name: Copy nginx config for challenge
+  become: yes
+  template: src=nginx.conf.j2 dest=/docker/letsencrypt/nginx.conf
+
+- name: Install dependencies for ansible docker modules
+  become: yes
+  pip:
+    name:
+      - docker
+      - docker-compose
+
+- name: Stop apache2 service
+  become: yes
+  service: name=apache2 state=stopped
+
+- name: Start letsencrypt challenge container
+  become: yes
+  docker_compose: project_src=/docker/letsencrypt
+
+- name: Get letsencrypt certificate
+  become: yes
+  vars:
+    certbot_cmd: "docker run --rm --name certbot -v /etc/letsencrypt:/etc/letsencrypt -v /var/lib/letsencrypt:/var/lib/letsencrypt -v /var/log/letsencrypt:/var/log/letsencrypt -v /data/letsencrypt:/data/letsencrypt certbot/certbot"
+    certonly_args: "--webroot -w /data/letsencrypt --cert-name {{ domain }} -d {{ domain }},cloud.{{ domain }},www.{{ domain }},www.cloud.{{ domain }} --agree-tos --register-unsafely-without-email"
+  block:
+
+    - name: Get test letsencrypt certificate
+      command:
+        cmd: "{{ certbot_cmd }} certonly {{ certonly_args }} --staging"
+        creates: "/etc/letsencrypt/live/{{ domain }}"
+
+    - name: Revoke and delete test letsencrypt certificate
+      command:
+        cmd: "{{ certbot_cmd }} revoke --cert-name {{ domain }} --delete-after-revoke --noninteractive --staging"
+        removes: "/etc/letsencrypt/live/{{ domain }}"
+
+    - name: Get letsencrypt certificate
+      command:
+        cmd: "{{ certbot_cmd }} certonly {{ certonly_args }}"
+        creates: "/etc/letsencrypt/live/{{ domain }}"
+
+- name: Stop and remove letsencrypt challenge container
+  become: yes
+  docker_compose: project_src=/docker/letsencrypt state=absent
+
+- name: Start apache2 service
+  become: yes
+  service: name=apache2 state=started
+
+- name: Install cron job to renew the certificate
+  become: yes
+  cron:
+    name: renew letsencrypt certificate
+    user: root
+    minute: '0'
+    hour: '23'
+    job: docker run --rm --name certbot-renew -v /etc/letsencrypt:/etc/letsencrypt -v /var/lib/letsencrypt:/var/lib/letsencrypt -v /var/log/letsencrypt:/var/log/letsencrypt -v /data/letsencrypt:/data/letsencrypt certbot/certbot renew --webroot -w /data/letsencrypt --quiet
+
+- name: Generate Diffie-Hellman parameters
+  become: yes
+  openssl_dhparam:
+    size: 4096
+    path: /etc/ssl/certs/dhparam.pem
+
+- name: Enable apache modules
+  become: yes
+  apache2_module:
+    name: "{{ item }}"
+  loop:
+    - rewrite
+    - ssl
+
+- name: Disable default SSL config
+  become: yes
+  command:
+    cmd: a2ensite default-ssl
+    removes: /etc/apache2/sites-enabled/default-ssl.conf
+
+- name: Remove default SSL config
+  become: yes
+  file: path=/etc/apache2/sites-available/default-ssl.conf state=absent
+
+- name: Copy SSL options config
+  become: yes
+  template:
+    src: ssl-options.conf.j2
+    dest: /etc/apache2/ssl-options.conf
+
+- name: Copy default site config
+  become: yes
+  template: src=000-default.conf.j2 dest=/etc/apache2/sites-available/000-default.conf
+
+- name: Restart apache2
+  become: yes
+  service: name=apache2 state=reloaded
