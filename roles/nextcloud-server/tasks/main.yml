@@ -1,0 +1,152 @@
+- name: Install PHP dependencies
+  become: yes
+  apt:
+    state: latest
+    name:
+      - libapache2-mod-php
+      - libxml2
+      - mariadb-server
+      - php7.2
+      - php7.2-bz2
+      - php7.2-curl
+      - php7.2-gd
+      - php7.2-gmp
+      - php7.2-intl
+      - php7.2-mbstring
+      - php7.2-mysql
+      - php7.2-xml
+      - php7.2-zip
+      - php-imagick
+
+- name: Downloads
+  vars:
+    tarball_url: https://download.nextcloud.com/server/releases/latest.tar.bz2
+    tarball_path: /tmp/nextcloud.tar.bz2
+  block:
+
+    - name: Download tarball
+      get_url:
+        url: "{{ tarball_url }}"
+        dest: "{{ tarball_path }}"
+        checksum: "sha256:{{ tarball_url }}.sha256"
+
+    - name: Download Nextcloud's PGP key
+      get_url:
+        url: https://nextcloud.com/nextcloud.asc
+        dest: /tmp/nextcloud.asc
+
+    - name: Download tarball PGP signature
+      get_url:
+        url: "{{ tarball_url }}.asc"
+        dest: "{{ tarball_path }}.asc"
+
+    - name: Import Nextcloud's PGP key
+      command: gpg --import /tmp/nextcloud.asc
+
+    - name: Verify archive's PGP signature
+      command: gpgv "{{ tarball_path }}.asc" "{{ tarball_path }}"
+
+    - name: Extract archive
+      become: yes
+      unarchive:
+        remote_src: yes
+        src: "{{ tarball_path }}"
+        dest: /var/www
+        creates: /var/www/nextcloud
+        owner: www-data
+        group: www-data
+
+    - name: Remove Nextcloud's PGP key
+      file:
+        path: /tmp/nextcloud.asc
+        state: absent
+
+    - name: Remove tarball PGP signature
+      file:
+        path: "{{ tarball_path }}.asc"
+        state: absent
+
+    - name: Remove archive
+      file:
+        path: "{{ tarball_path }}"
+        state: absent
+
+- name: Enable apache modules
+  become: yes
+  apache2_module:
+    name: "{{ item }}"
+  loop:
+    - dir
+    - env
+    - headers
+    - mime
+    - rewrite
+    - ssl
+
+- name: Copy site config
+  become: yes
+  template: src=nextcloud.conf.j2 dest=/etc/apache2/sites-available/nextcloud.conf
+
+- name: Enable site config
+  become: yes
+  command:
+    cmd: a2ensite nextcloud
+    creates: /etc/apache2/sites-enabled/nextcloud.conf
+
+- name: Restart apache2
+  become: yes
+  service: name=apache2 state=restarted
+
+- name: Setup MySQL database
+  become: yes
+  command: mysql -e "CREATE DATABASE IF NOT EXISTS nextcloud; CREATE USER IF NOT EXISTS '{{ db_user }}'@'localhost' IDENTIFIED BY '{{ db_pass }}'; GRANT ALL PRIVILEGES ON nextcloud.* TO '{{ db_user }}'@'localhost' IDENTIFIED BY '{{ db_pass }}'; FLUSH PRIVILEGES"
+
+- name: Install
+  become: yes
+  become_user: www-data
+  command: php /var/www/nextcloud/occ maintenance:install --database mysql --database-name nextcloud --database-user "{{ db_user }}" --database-pass "{{ db_pass }}" --admin-user "{{ admin_user }}" --admin-pass "{{ admin_pass }}"
+
+- name: Add trusted domain to config
+  become: yes
+  lineinfile:
+    path: /var/www/nextcloud/config/config.php
+    insertafter: "0 => 'localhost',"
+    line: "    1 => '{{ domain }}'"
+
+- name: Fix url rewrite in config
+  become: yes
+  lineinfile:
+    path: /var/www/nextcloud/config/config.php
+    regexp: "  'overwrite\\.cli\\.url' => 'http://localhost',"
+    line: "  'overwrite.cli.url' => 'https://{{ domain }}/nextcloud',"
+
+- name: Add htaccess RewriteBase to config
+  become: yes
+  lineinfile:
+    path: /var/www/nextcloud/config/config.php
+    insertafter: 'overwrite.cli.url'
+    line: "  'htaccess.RewriteBase' => '/',"
+
+- name: Update htaccess
+  become: yes
+  become_user: www-data
+  command: php /var/www/nextcloud/occ maintenance:update:htaccess
+
+- name: Cleanup Nextcloud files
+  become: yes
+  file:
+    path: "/var/www/nextcloud/data/{{ admin_user }}/files/{{ item }}"
+    state: absent
+  loop:
+    - Nextcloud intro.mp4
+    - Nextcloud.png
+    - Documents/Example.md
+    - Documents/Example.odt
+    - Documents/Nextcloud flyer.pdf
+    - Documents/Readme.md
+    - Photos
+
+- name: Reindex Nextcloud files
+  become: yes
+  become_user: www-data
+  command: php /var/www/nextcloud/occ files:scan "{{ admin_user }}"

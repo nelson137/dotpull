@@ -1,0 +1,4 @@
+---
+dependencies:
+  - apache2
+  - apache2-ssl
