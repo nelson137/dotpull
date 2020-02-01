@@ -23,7 +23,7 @@
     mode: u=rwx,g=rx,o=rx
   when: motd_script is defined
 
-- name:
+- name: Make sure motd works
   become: yes
   command: run-parts /etc/update-motd.d
 
