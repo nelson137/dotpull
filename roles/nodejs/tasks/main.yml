@@ -1,24 +1,31 @@
-- name: Determine latest version
-  register: nodejs_version
+- name: Get latest version
+  register: latest_v
   shell: curl -s https://nodejs.org/dist/latest/SHASUMS256.txt | sed -nE '1s/.*-v([0-9]+).*/\1/p'
   args:
     warn: no
+  changed_when: false
 
-- name: Download setup script
-  get_url:
-    url: "https://deb.nodesource.com/setup_{{ nodejs_version.stdout }}.x"
-    dest: "{{ nodejs_script }}"
-    mode: +x
+- name: Check if already installed
+  shell: nodejs -v | grep -oP '(?<=v)[0-9]+'
+  register: installed_v
+  failed_when: false
+  changed_when: false
 
-- name: Execute setup script
-  become: yes
-  command: "{{ nodejs_script }}"
+- when: installed_v is succeeded and installed_v.stdout != latest_v.stdout
+  block:
 
-- name: Remove setup script
-  file:
-    path: "{{ nodejs_script }}"
-    state: absent
+    - name: Download setup script
+      get_url:
+        url: "https://deb.nodesource.com/setup_{{ latest_v.stdout }}.x"
+        dest: /tmp/setup-nodejs
+        mode: +x
 
-- name: Install
-  become: yes
-  apt: name=nodejs state=latest
+    - name: Execute setup script
+      become: yes
+      command: /tmp/setup-nodejs
+      notify:
+        - remove nodejs setup script
+
+    - name: Install
+      become: yes
+      apt: name=nodejs state=latest

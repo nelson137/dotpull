@@ -18,16 +18,21 @@
       - php7.2-zip
       - php-imagick
 
+- name: Check if already installed
+  stat:
+    path: /var/www/nextcloud
+  register: nextcloud_dir
+
 - name: Downloads
   vars:
     tarball_url: https://download.nextcloud.com/server/releases/latest.tar.bz2
-    tarball_path: /tmp/nextcloud.tar.bz2
+  when: nextcloud_dir.stat.exists == false
   block:
 
     - name: Download tarball
       get_url:
         url: "{{ tarball_url }}"
-        dest: "{{ tarball_path }}"
+        dest: /tmp/nextcloud.tar.bz2
         checksum: "sha256:{{ tarball_url }}.sha256"
 
     - name: Download Nextcloud's PGP key
@@ -38,38 +43,29 @@
     - name: Download tarball PGP signature
       get_url:
         url: "{{ tarball_url }}.asc"
-        dest: "{{ tarball_path }}.asc"
+        dest: /tmp/nextcloud.tar.bz2.asc
 
     - name: Import Nextcloud's PGP key
       command: gpg --import /tmp/nextcloud.asc
+      notify:
+        - remove nextcloud pgp key
 
     - name: Verify archive's PGP signature
-      command: gpgv "{{ tarball_path }}.asc" "{{ tarball_path }}"
+      command: gpgv /tmp/nextcloud.tar.bz2.asc /tmp/nextcloud.tar.bz2
+      notify:
+        - remove nextcloud server tarball pgp signature
 
     - name: Extract archive
       become: yes
       unarchive:
         remote_src: yes
-        src: "{{ tarball_path }}"
+        src: /tmp/nextcloud.tar.bz2
         dest: /var/www
         creates: /var/www/nextcloud
         owner: www-data
         group: www-data
-
-    - name: Remove Nextcloud's PGP key
-      file:
-        path: /tmp/nextcloud.asc
-        state: absent
-
-    - name: Remove tarball PGP signature
-      file:
-        path: "{{ tarball_path }}.asc"
-        state: absent
-
-    - name: Remove archive
-      file:
-        path: "{{ tarball_path }}"
-        state: absent
+      notify:
+        - remove nextcloud server archive
 
 - name: Enable apache modules
   become: yes
@@ -82,6 +78,8 @@
     - mime
     - rewrite
     - ssl
+  notify:
+    - restart apache2
 
 - name: Copy site config
   become: yes
@@ -92,10 +90,8 @@
   command:
     cmd: a2ensite nextcloud
     creates: /etc/apache2/sites-enabled/nextcloud.conf
-
-- name: Restart apache2
-  become: yes
-  service: name=apache2 state=restarted
+  notify:
+    - restart apache2
 
 - name: Setup MySQL database
   become: yes
@@ -112,6 +108,8 @@
     path: /var/www/nextcloud/config/config.php
     insertafter: "0 => 'localhost',"
     line: "    1 => '{{ domain }}'"
+  notify:
+    - update nextcloud htaccess
 
 - name: Fix url rewrite in config
   become: yes
@@ -119,6 +117,8 @@
     path: /var/www/nextcloud/config/config.php
     regexp: "  'overwrite\\.cli\\.url' => 'http://localhost',"
     line: "  'overwrite.cli.url' => 'https://{{ domain }}/nextcloud',"
+  notify:
+    - update nextcloud htaccess
 
 - name: Add htaccess RewriteBase to config
   become: yes
@@ -126,11 +126,8 @@
     path: /var/www/nextcloud/config/config.php
     insertafter: 'overwrite.cli.url'
     line: "  'htaccess.RewriteBase' => '/',"
-
-- name: Update htaccess
-  become: yes
-  become_user: www-data
-  command: php /var/www/nextcloud/occ maintenance:update:htaccess
+  notify:
+    - update nextcloud htaccess
 
 - name: Cleanup Nextcloud files
   become: yes
@@ -145,8 +142,5 @@
     - Documents/Nextcloud flyer.pdf
     - Documents/Readme.md
     - Photos
-
-- name: Reindex Nextcloud files
-  become: yes
-  become_user: www-data
-  command: php /var/www/nextcloud/occ files:scan "{{ admin_user }}"
+  notify:
+    - reindex nextcloud files

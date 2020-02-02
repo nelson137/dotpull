@@ -1,0 +1,2 @@
+- name: remove lydm repo
+  file: path=/tmp/ly state=absent

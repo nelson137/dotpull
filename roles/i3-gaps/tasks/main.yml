@@ -25,54 +25,57 @@
       - libxkbcommon-x11-dev
       - xmlto
 
-- name: Get latest download url
+- name: Get latest version
   shell:
     cmd: curl -sL https://api.github.com/repos/Airblader/i3/releases/latest | jq -r '.tag_name'
     warn: no
-  register: p_version
+  register: i3_gaps_v
+  changed_when: false
 
-- name: i3-gaps
-  vars:
-    version: "{{ p_version.stdout }}"
-    asset: "i3-{{ version }}.tar.bz2"
-    repo: "/tmp/i3-{{ version }}"
+- name: Check if already downloaded
+  stat:
+    path: /tmp/i3-gaps
+  register: i3_gaps
+
+- when: i3_gaps.stat.exists == false
   block:
 
-    - name: Download repo
-      unarchive:
-        src: "https://github.com/Airblader/i3/releases/download/{{ version }}/{{ asset }}"
-        dest: /tmp
-        remote_src: yes
-        creates: "/tmp/{{ asset }}"
+    - name: Download archive
+      get_url:
+        url: "https://github.com/Airblader/i3/releases/download/{{ i3_gaps_v.stdout }}/i3-{{ i3_gaps_v.stdout }}.tar.bz2"
+        dest: /tmp/i3-gaps.tar.bz2
 
-    - name: Generate build scripts
+    - name: Create repo directory
+      file: path=/tmp/i3-gaps state=directory
+
+    - name: Extract archive
       command:
-        cmd: autoreconf --force --install
-        chdir: "{{ repo }}"
-        creates: "{{ repo }}/configure"
+        cmd: tar xjf /tmp/i3-gaps.tar.bz2 -C /tmp/i3-gaps --strip-components 1
+        warn: no
+        creates: /tmp/i3-gaps/LICENSE
+      notify:
+        - remove i3-gaps archive
 
-    - name: Create build directory
-      file:
-        path: "{{ repo }}/build"
-        state: directory
+- name: Generate build scripts
+  command:
+    cmd: autoreconf --force --install
+    chdir: /tmp/i3-gaps
+    creates: /tmp/i3-gaps/configure
 
-    - name: Generate Makefile
-      command:
-        chdir: "{{ repo }}/build"
-        cmd: ../configure --prefix=/usr --sysconfdir=/etc --mandir=/usr/local/share/man --disable-sanitizers
-        creates: "{{ repo }}/build/Makefile"
+- name: Create build directory
+  file: path=/tmp/i3-gaps/build state=directory
 
-    - name: Compile
-      make:
-        chdir: "{{ repo }}/build"
+- name: Generate Makefiles
+  command:
+    chdir: /tmp/i3-gaps/build
+    cmd: ../configure --prefix=/usr --sysconfdir=/etc --mandir=/usr/local/share/man --disable-sanitizers
+    creates: /tmp/i3-gaps/build/Makefile
 
-    - name: Install
-      become: yes
-      make:
-        chdir: "{{ repo }}"
-        target: install
+- name: Compile
+  make: chdir=/tmp/i3-gaps/build
 
-    - name: Remove repo
-      file:
-        path: "{{ repo }}"
-        state: absent
+- name: Install
+  become: yes
+  make: chdir=/tmp/i3-gaps/build target=install
+  notify:
+    - remove i3-gaps repo

@@ -1,26 +1,27 @@
 - name: Install zsh
   apt: name=zsh state=latest
 
+- name: Check if already installed
+  stat:
+    path: "{{ ansible_user_dir }}/.oh-my-zsh"
+  register: oh_my_zsh
+
 - name: Oh My Zsh
-  vars:
-    install_script: /tmp/install-ohmyzsh
+  when: oh_my_zsh.stat.exists == false
   block:
 
     - name: Download install script
       get_url:
         url: https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh
-        dest: "{{ install_script }}"
+        dest: /tmp/install-ohmyzsh
         mode: 0755
 
     - name: Execute install script
       command:
-        cmd: "{{ install_script }} --unattended"
+        cmd: /tmp/install-ohmyzsh --unattended
         creates: "{{ ansible_user_dir }}/.oh-my-zsh"
-
-    - name: Remove install script
-      file:
-        path: "{{ install_script }}"
-        state: absent
+      notify:
+        - remove install script
 
 - name: Change user shell to zsh
   become: yes

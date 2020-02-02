@@ -32,22 +32,13 @@
       make:
         chdir: "{{ ly_dir }}"
         target: install
-
-    - name: Remove repo
-      file:
-        name: "{{ ly_dir }}"
-        state: absent
-
-- name: Detect old display manager service
-  become: yes
-  register: has_old_dm
-  command: systemctl is-enabled display-manager
-  failed_when: false
+      notify:
+        - remove lydm repo
 
 - name: Disable old display manager
   become: yes
   service: name=display-manager enabled=no
-  when: has_old_dm.rc == 0
+  failed_when: false
 
 - name: Enable service
   become: yes

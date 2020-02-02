@@ -21,17 +21,21 @@
       - docker
       - docker-compose
 
-- name: Stop apache2 service
+- name: Check if LetsEncrypt certificate already exists
   become: yes
-  service: name=apache2 state=stopped
+  stat:
+    path: "/etc/letsencrypt/live/{{ domain }}"
+  register: le_cert
 
-- name: Start LetsEncrypt challenge container
+- name:
   become: yes
-  docker_compose: project_src=/docker/letsencrypt
-
-- name: Get LetsEncrypt certificate
-  become: yes
+  when: le_cert.stat.exists == false
   block:
+    - name: Stop apache2 service
+      service: name=apache2 state=stopped
+
+    - name: Start LetsEncrypt challenge container
+      docker_compose: project_src=/docker/letsencrypt
 
     - name: Get test LetsEncrypt certificate
       command:
@@ -48,13 +52,11 @@
         cmd: /docker/letsencrypt/le-cmd cert-get
         creates: "/etc/letsencrypt/live/{{ domain }}"
 
-- name: Stop and remove LetsEncrypt challenge container
-  become: yes
-  docker_compose: project_src=/docker/letsencrypt state=absent
+    - name: Stop and remove LetsEncrypt challenge container
+      docker_compose: project_src=/docker/letsencrypt state=absent
 
-- name: Start apache2 service
-  become: yes
-  service: name=apache2 state=started
+    - name: Start apache2 service
+      service: name=apache2 state=started
 
 - name: Install cron job to renew the certificate
   become: yes
@@ -85,27 +87,33 @@
   loop:
     - rewrite
     - ssl
+  notify:
+    - restart apache2
 
 - name: Disable default SSL config
   become: yes
   command:
     cmd: a2ensite default-ssl
     removes: /etc/apache2/sites-enabled/default-ssl.conf
+  notify:
+    - restart apache2
 
 - name: Remove default SSL config
   become: yes
   file: path=/etc/apache2/sites-available/default-ssl.conf state=absent
+  notify:
+    - restart apache2
 
 - name: Copy SSL options config
   become: yes
   template:
     src: ssl-options.conf.j2
     dest: /etc/apache2/ssl-options.conf
+  notify:
+    - restart apache2
 
 - name: Copy default site config
   become: yes
   template: src=000-default.conf.j2 dest=/etc/apache2/sites-available/000-default.conf
-
-- name: Restart apache2
-  become: yes
-  service: name=apache2 state=reloaded
+  notify:
+    - restart apache2

@@ -1,0 +1,21 @@
+- name: remove nextcloud pgp key
+  file: path=/tmp/nextcloud.asc state=absent
+
+- name: remove nextcloud server archive pgp signature
+  file: path=/tmp/nextcloud.tar.bz2.asc state=absent
+
+- name: remove nextcloud server archive
+  file: path=/tmp/nextcloud.tar.bz2 state=absent
+
+- name: remove nextcloud archive
+  file: path=/tmp/nextcloud.tar.bz2 state=absent
+
+- name: update nextcloud htaccess
+  become: yes
+  become_user: www-data
+  command: php /var/www/nextcloud/occ maintenance:update:htaccess
+
+- name: reindex nextcloud files
+  become: yes
+  become_user: www-data
+  command: php /var/www/nextcloud/occ files:scan "{{ admin_user }}"
