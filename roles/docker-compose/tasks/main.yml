@@ -1,6 +1,6 @@
 - name: Get latest download url
   shell:
-    cmd: curl -sL https://api.github.com/repos/docker/compose/releases/latest | jq -r '.assets[] | select(.name|endswith("Linux-x86_64")) | .browser_download_url'
+    cmd: curl -sL https://api.github.com/repos/docker/compose/releases/latest | jq -r '.assets[] | select(.name|endswith("Linux-x86_64")).browser_download_url'
     warn: no
   register: download_url
   changed_when: false

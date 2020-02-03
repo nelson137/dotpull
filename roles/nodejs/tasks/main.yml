@@ -1,7 +1,7 @@
 - name: Get latest version
   register: latest_v
-  shell: curl -s https://nodejs.org/dist/latest/SHASUMS256.txt | sed -nE '1s/.*-v([0-9]+).*/\1/p'
-  args:
+  shell:
+    cmd: curl -s https://nodejs.org/dist/latest/SHASUMS256.txt | grep -oPm 1 '(?<=v)[0-9]+'
     warn: no
   changed_when: false
 
