@@ -93,6 +93,12 @@
   notify:
     - restart apache2
 
+- name: Copy MariaDB config
+  become: yes
+  copy:
+    src: 60-nextcloud.cnf
+    dest: /etc/mysql/mariadb.conf.d/60-nextcloud.cnf
+
 - name: Check if MySQL database already setup
   become: yes
   shell: mysql -sNe 'USE nextcloud; SELECT @@character_set_database,@@collation_database' | grep -Pq 'utf8mb4\tutf8mb4_general_ci'
@@ -108,7 +114,7 @@
 - name: Setup MySQL database
   when: nc_db_is_setup.rc != 0
   become: yes
-  command: mysql -e "CREATE DATABASE IF NOT EXISTS nextcloud; CREATE USER IF NOT EXISTS '{{ db_user }}'@'localhost' IDENTIFIED BY '{{ db_pass }}'; GRANT ALL PRIVILEGES ON nextcloud.* TO '{{ db_user }}'@'localhost' IDENTIFIED BY '{{ db_pass }}'; FLUSH PRIVILEGES"
+  command: mysql -e "CREATE DATABASE nextcloud CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci; CREATE USER IF NOT EXISTS '{{ db_user }}'@'localhost' IDENTIFIED BY '{{ db_pass }}'; GRANT ALL PRIVILEGES ON nextcloud.* TO '{{ db_user }}'@'localhost' IDENTIFIED BY '{{ db_pass }}'; FLUSH PRIVILEGES"
 
 - name: Check if already installed
   stat: path=/var/www/nextcloud/config/config.php
@@ -144,6 +150,13 @@
     line: "  'htaccess.RewriteBase' => '/',"
   notify:
     - update nextcloud htaccess
+
+- name: Enable MySQL utf8mb4 charset in config
+  become: yes
+  lineinfile:
+    path: /var/www/nextcloud/config/config.php
+    insertafter: 'dbpassword'
+    line: "  'mysql.utf8mb4' => true,"
 
 - name: Cleanup Nextcloud files
   become: yes
