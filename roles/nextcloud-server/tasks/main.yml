@@ -51,7 +51,7 @@
         - remove nextcloud pgp key
 
     - name: Verify archive's PGP signature
-      command: gpgv /tmp/nextcloud.tar.bz2.asc /tmp/nextcloud.tar.bz2
+      command: gpg --verify /tmp/nextcloud.tar.bz2.asc /tmp/nextcloud.tar.bz2
       notify:
         - remove nextcloud server archive pgp signature
 
