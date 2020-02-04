@@ -107,7 +107,7 @@
   lineinfile:
     path: /var/www/nextcloud/config/config.php
     insertafter: "0 => 'localhost',"
-    line: "    1 => '{{ domain }}'"
+    line: "    1 => 'cloud.{{ domain }}',"
   notify:
     - update nextcloud htaccess
 
@@ -116,7 +116,7 @@
   lineinfile:
     path: /var/www/nextcloud/config/config.php
     regexp: "  'overwrite\\.cli\\.url' => 'http://localhost',"
-    line: "  'overwrite.cli.url' => 'https://{{ domain }}/nextcloud',"
+    line: "  'overwrite.cli.url' => 'https://cloud.{{ domain }}',"
   notify:
     - update nextcloud htaccess
 
