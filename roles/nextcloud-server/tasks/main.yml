@@ -126,8 +126,6 @@
     path: /var/www/nextcloud/config/config.php
     insertafter: "0 => 'localhost',"
     line: "    1 => 'cloud.{{ domain }}',"
-  notify:
-    - update nextcloud htaccess
 
 - name: Fix url rewrite in config
   become: yes
