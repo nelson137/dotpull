@@ -93,11 +93,29 @@
   notify:
     - restart apache2
 
+- name: Check if MySQL database already setup
+  become: yes
+  shell: mysql -sNe 'USE nextcloud; SELECT @@character_set_database,@@collation_database' | grep -Pq 'utf8mb4\tutf8mb4_general_ci'
+  register: nc_db_is_setup
+  failed_when: false
+  changed_when: false
+
+- name: Delete any existing database
+  when: nc_db_is_setup.rc != 0
+  become: yes
+  command: mysql -e 'DROP DATABASE IF EXISTS nextcloud'
+
 - name: Setup MySQL database
+  when: nc_db_is_setup.rc != 0
   become: yes
   command: mysql -e "CREATE DATABASE IF NOT EXISTS nextcloud; CREATE USER IF NOT EXISTS '{{ db_user }}'@'localhost' IDENTIFIED BY '{{ db_pass }}'; GRANT ALL PRIVILEGES ON nextcloud.* TO '{{ db_user }}'@'localhost' IDENTIFIED BY '{{ db_pass }}'; FLUSH PRIVILEGES"
 
+- name: Check if already installed
+  stat: path=/var/www/nextcloud/config/config.php
+  register: nc_config
+
 - name: Install
+  when: nc_config.stat.exists == false
   become: yes
   become_user: www-data
   command: php /var/www/nextcloud/occ maintenance:install --database mysql --database-name nextcloud --database-user "{{ db_user }}" --database-pass "{{ db_pass }}" --admin-user "{{ admin_user }}" --admin-pass "{{ admin_pass }}"
