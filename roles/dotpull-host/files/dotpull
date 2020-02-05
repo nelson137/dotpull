@@ -21,4 +21,4 @@ apt install -y ansible python3-pip
 pip3 list --format columns | grep -q github3 || sudo -H pip3 install github3.py
 
 # Pull down and execute play for configuring local system
-ansible-pull --purge -U https://github.com/nelson137/dotpull --ask-vault-pass "$sys.yml"
+ansible-pull --purge -U https://github.com/nelson137/dotpull --ask-vault-pass "$host.yml"
