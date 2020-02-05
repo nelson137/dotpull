@@ -28,11 +28,11 @@ challenger-down() {
 }
 
 cert-view() {
-    certbot certificates
+    certbot-docker certificates
 }
 
 cert-get() {
-    certbot certonly --cert-name "$DOMAIN" \
+    certbot-docker certonly --cert-name "$DOMAIN" \
         --webroot -w /data/letsencrypt \
         -d "$DOMAIN,www.$DOMAIN,cloud.$DOMAIN,www.cloud.$DOMAIN" \
         --agree-tos --register-unsafely-without-email \
