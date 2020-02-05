@@ -12,7 +12,7 @@
 
 - name: Copy LetsEncrypt command script
   become: yes
-  template: src=le-cmd.j2 dest=/docker/letsencrypt/le-cmd mode=0775
+  copy: src=le-cmd dest=/docker/letsencrypt/le-cmd mode=0775
 
 - name: Install dependencies for ansible docker modules
   become: yes
