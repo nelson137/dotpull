@@ -1,5 +1,30 @@
 ---
 - hosts: local
+  vars:
+    new_hostname: cantou
 
   roles:
+    - hostname
+
     - apt-packages
+    - pip-packages
+    - youtube-dl
+    - nodejs
+
+    - apache2
+    - apache2-ssl
+
+    - dotpull-host
+
+    - docker
+    - docker-compose
+
+    - nextcloud-server
+
+    - custom-motd
+    - custom-motd-screenfetch
+
+    - selected-editor
+    - ssh-key
+    - oh-my-zsh
+    - dotfiles
