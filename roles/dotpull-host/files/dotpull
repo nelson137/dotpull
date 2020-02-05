@@ -2,20 +2,23 @@
 
 set -e
 
-[ "$EUID" -eq 0 ] || {
-    echo 'Must be run as root' >&2
+[ "$EUID" -eq 0 ] && {
+    echo 'error: must not be run as root' >&2
     exit 1
 }
+
+# Cache sudo password
+sudo /bin/true
 
 # Get target host
 read -p 'Target Hostname: ' host
 [ -n "$host" ] || exit 1
 
 # Make sure the ansible apt repository is added
-apt-cache policy | grep -q ansible || add-apt-repository -yu ppa:ansible/ansible
+apt-cache policy | grep -q ansible || sudo add-apt-repository -yu ppa:ansible/ansible
 
 # Install dependencies
-apt install -y ansible python3-pip
+sudo apt install -y ansible python3-pip
 
 # Make sure ansible dependencies are installed
 pip3 list --format columns | grep -q github3 || sudo -H pip3 install github3.py
