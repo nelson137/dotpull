@@ -1,24 +1,57 @@
-- name: Determine latest version
-  register: tor_version
-  shell: curl -s "{{ tor_url }}" | sed -nE 's/.*<a[^>]+>([0-9\.]+)\/<\/a>.*/\1/p' | sort -n | tail -1
-  args:
-    warn: no
+- name: Check if already installed
+  stat:
+    path: "{{ ansible_user_dir }}/.tor"
+  register: tor_browser
 
-- name: Install
-  vars:
-    asset_name: "tor-browser-linux64-{{ tor_version.stdout }}_en-US.tar.xz"
+- when: tor_browser.stat.exists == false
   block:
 
-    - name: Download
+    - name: Get latest version
+      register: tor_v_p
+      shell:
+        cmd: curl -sL "{{ tor_url }}" | grep -oP '(?<=<a href=")[0-9\.]+(?=/")' | sort -n | tail -1
+        warn: no
+      changed_when: false
+
+    - set_fact:
+        tor_v: "{{ tor_v_p.stdout }}"
+
+    - name: Download archive, archive signature, sha256sums, sha256sums signature
       get_url:
-        url: "{{ tor_url }}{{ tor_version.stdout }}/{{ asset_name }}"
-        dest: "/tmp/{{ asset_name }}"
+        url: "{{ tor_url }}{{ tor_v }}/{{ item }}"
+        dest: /tmp
+      loop:
+        - sha256sums-signed-build.txt
+        - sha256sums-signed-build.txt.asc
+        - "tor-browser-linux64-{{ tor_v }}_en-US.tar.xz"
+        - "tor-browser-linux64-{{ tor_v }}_en-US.tar.xz.asc"
 
-    - name: Install
+    - name: Verify integrity of downloads
+      command:
+        chdir: /tmp
+        cmd: "{{ item }}"
+      loop:
+        - sha256sum -c --ignore-missing sha256sums-signed-build.txt
+        - gpg --auto-key-locate nodefault,wkd --locate-keys torbrowser@torproject.org
+        - gpg --verify sha256sums-signed-build.txt.asc sha256sums-signed-build.txt
+        - gpg --verify "tor-browser-linux64-{{ tor_v }}_en-US.tar.xz.asc" "tor-browser-linux64-{{ tor_v }}_en-US.tar.xz"
+
+    - name: Extract and install
       unarchive:
-        src: "/tmp/{{ asset_name }}"
-        dest: "{{ ansible_user_dir }}/.tor"
+        src: "/tmp/tor-browser-linux64-{{ tor_v }}_en-US.tar.xz"
+        dest: "{{ ansible_user_dir }}"
         remote_src: yes
+        creates: "{{ ansible_user_dir }}/tor-browser_en-US"
+      notify:
+        - remove tor-browser sha256sum
+        - remove tor-browser sha256sum pgp signature
+        - remove tor-browser archive
+        - remove tor-browser archive pgp signature
 
-- name: Register app
-  command: "{{ ansible_user_dir }}/.tor/Browser/start-tor-browser" --register-app
+    - name: Make installation directory hidden
+      command:
+        cmd: mv "{{ ansible_user_dir }}/tor-browser_en-US" "{{ ansible_user_dir }}/.tor"
+        creates: "{{ ansible_user_dir }}/.tor"
+
+    #- name: Register app
+    #  command: "{{ ansible_user_dir }}/.tor/Browser/start-tor-browser --register-app"

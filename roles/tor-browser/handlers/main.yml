@@ -1,0 +1,19 @@
+- name: remove tor-browser sha256sum
+  file:
+    path: /tmp/sha256sums-signed-build.txt
+    state: absent
+
+- name: remove tor-browser sha256sum pgp signature
+  file:
+    path: /tmp/sha256sums-signed-build.txt.asc
+    state: absent
+
+- name: remove tor-browser archive
+  file:
+    path: "/tmp/tor-browser-linux64-{{ tor_v }}_en-US.tar.xz"
+    state: absent
+
+- name: remove tor-browser archive pgp signature
+  file:
+    path: "/tmp/tor-browser-linux64-{{ tor_v }}_en-US.tar.xz.asc"
+    state: absent
