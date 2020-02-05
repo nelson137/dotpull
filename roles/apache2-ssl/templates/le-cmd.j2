@@ -59,6 +59,8 @@ done
 
 (( ${{ '{#' }}CMD[@]} == 0 )) && CMD=( usage )
 
-# If the command if it is a defined function execute it
-# Otherwise show usage and error out
-declare -F | grep -q "$1" && eval "$CMD" || usage 1
+if declare -F | grep -q "$1"; then
+    eval "$CMD"
+else
+    usage 1
+fi
