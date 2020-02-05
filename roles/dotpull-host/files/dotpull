@@ -9,7 +9,7 @@ apt-cache policy | grep -q ansible || {
 
 # Make sure the latest ansible is installed
 apt-cache policy ansible | awk '/Inst/{i=$2}/Cand/{c=$2} END{if(i!=c)exit 1}' || {
-    apt install -y ansible
+    apt install -y ansible python3-pip
 }
 
 # Make sure ansible dependencies are installed
