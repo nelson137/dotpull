@@ -7,19 +7,18 @@ set -e
     exit 1
 }
 
-# Make sure the ansible apt repository is added
-apt-cache policy | grep -q ansible || {
-    add-apt-repository -yu ppa:ansible/ansible
-}
+# Get target host
+read -p 'Target Hostname: ' host
+[ -n "$host" ] || exit 1
 
-# Make sure the latest ansible is installed
-apt-cache policy ansible | awk '/Inst/{i=$2}/Cand/{c=$2} END{if(i!=c)exit 1}' || {
-    apt install -y ansible python3-pip
-}
+# Make sure the ansible apt repository is added
+apt-cache policy | grep -q ansible || add-apt-repository -yu ppa:ansible/ansible
+
+# Install dependencies
+apt install -y ansible python3-pip
 
 # Make sure ansible dependencies are installed
 pip3 list --format columns | grep -q github3 || sudo -H pip3 install github3.py
 
 # Pull down and execute play for configuring local system
-read -p 'Target Hostname: ' sys &&
-    ansible-pull --purge --ask-vault-pass -U https://github.com/nelson137/dotpull "$sys.yml"
+ansible-pull --purge -U https://github.com/nelson137/dotpull --ask-vault-pass "$sys.yml"
