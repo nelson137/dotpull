@@ -28,3 +28,5 @@
     - ssh-key
     - oh-my-zsh
     - dotfiles
+
+    - reboot-when-done
