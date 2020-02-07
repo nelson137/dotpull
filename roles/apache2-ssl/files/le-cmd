@@ -2,12 +2,13 @@
 
 set -e
 
-STAGING=
+DOMAIN=
+
 CHALLENGER_PATH=/docker/letsencrypt
 declare -a CMD
 
 usage() {
-    echo "Usage: $0 { challenger-up | challenger-down | cert-view | cert-get | cert-revoke | cert-renew }"
+    echo "Usage: $0 DOMAIN { challenger-up | challenger-down | cert-view | cert-get | cert-revoke | cert-renew }"
     exit "${1:-0}"
 }
 
@@ -33,28 +34,27 @@ cert-view() {
 }
 
 cert-get() {
-    local domain="$1"
-    shift
-    certbot-docker certonly --cert-name "$domain" \
+    certbot-docker certonly --cert-name "$DOMAIN" \
         --webroot -w /data/letsencrypt \
-        -d "$domain,www.$domain,cloud.$domain,www.cloud.$domain" \
+        -d "$DOMAIN,www.$DOMAIN,cloud.$DOMAIN,www.cloud.$DOMAIN" \
         --agree-tos --register-unsafely-without-email \
         "$@"
 }
 
 cert-revoke() {
-    local domain="$1"
-    shift
-    certbot-docker revoke --cert-name "$domain" \
+    certbot-docker revoke --cert-name "$DOMAIN" \
         --delete-after-revoke --noninteractive \
         "$@"
 }
 
 cert-renew() {
-    local domain="$1"
-    shift
-    certbot-docker renew --cert-name "$domain" --webroot -w /data/letsencrypt
+    certbot-docker renew --cert-name "$DOMAIN" --webroot -w /data/letsencrypt
 }
+
+[ $# -eq 0 ] && usage
+
+DOMAIN="$1"
+shift
 
 while [ $# -ne 0 ]; do
     case "$1" in

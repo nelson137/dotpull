@@ -39,17 +39,17 @@
 
     - name: Get test LetsEncrypt certificate
       command:
-        cmd: /docker/letsencrypt/le-cmd cert-get --staging
+        cmd: /docker/letsencrypt/le-cmd "{{ domain }}" cert-get --staging
         creates: "/etc/letsencrypt/live/{{ domain }}"
 
     - name: Revoke and delete test LetsEncrypt certificate
       command:
-        cmd: /docker/letsencrypt/le-cmd cert-revoke --staging
+        cmd: /docker/letsencrypt/le-cmd "{{ domain }}" cert-revoke --staging
         removes: "/etc/letsencrypt/live/{{ domain }}"
 
     - name: Get LetsEncrypt certificate
       command:
-        cmd: /docker/letsencrypt/le-cmd cert-get
+        cmd: /docker/letsencrypt/le-cmd "{{ domain }}" cert-get
         creates: "/etc/letsencrypt/live/{{ domain }}"
 
     - name: Stop and remove LetsEncrypt challenge container
@@ -65,7 +65,7 @@
     user: root
     minute: '0'
     hour: '23'
-    job: /docker/letsencrypt/le-cmd cert-renew
+    job: /docker/letsencrypt/le-cmd "{{ domain }}" cert-renew
 
 - name: Disable apache ServerToken
   become: yes
