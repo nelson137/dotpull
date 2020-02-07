@@ -1,3 +1,7 @@
+- name: Upgrade
+  become: yes
+  apt: upgrade=dist
+
 - name: Install packages
   become: yes
   apt:
