@@ -1,27 +1,118 @@
-#!/bin/sh
+#!/bin/bash
 
 set -e
 
 [ "$EUID" -eq 0 ] && {
-    echo 'error: must not be run as root' >&2
+    log 'error: must not be run as root'
     exit 1
 }
+
+SPINNER='|/-\'
+SPINNING=0
+SPINNER_PID=
+
+# Make sure spinner doesn't get left running
+trap '[ -n "$SPINNER_PID" ] && /bin/kill "$SPINNER_PID"' EXIT
 
 # Cache sudo password
 sudo /bin/true
 
-# Get target host
-read -p 'Target Hostname: ' host
-[ -n "$host" ] || exit 1
+log() {
+    echo "$@" >&2
+}
 
-# Make sure the ansible apt repository is added
-apt-cache policy | grep -q ansible || sudo add-apt-repository -yu ppa:ansible/ansible
+start_spinner() {
+    [ "$SPINNING" -eq 1 ] && return
+    while true; do
+        for (( i=0; i<${#SPINNER}; i++ )); do
+            tput sc
+            log -n "${SPINNER:$i:1} "
+            sleep .15
+            tput rc
+        done
+    done &
+    SPINNER_PID="$!"
+}
 
-# Install dependencies
-sudo apt install -y ansible python3-pip
+stop_spinner() {
+    [ -n "$SPINNER_PID" ] && /bin/kill "$SPINNER_PID"
+    tput rc
+    log '  '
+}
 
-# Make sure ansible dependencies are installed
-pip3 list --format columns | grep -q github3 || sudo -H pip3 install github3.py
+add_apt_repos() {
+    for repo in "$@"; do
+        apt-cache policy | grep -q "$repo" || {
+            log -n "Adding apt repository $repo ... "
+            start_spinner
+            sudo add-apt-repository -yu "ppa:$repo" &>/dev/null
+            stop_spinner
+        }
+    done
+}
+
+apt_install() {
+    for pkg in "$@"; do
+        if ! dpkg -s "$pkg" &>/dev/null; then
+            log -n "Installing $pkg ... "
+            start_spinner
+            if ! sudo apt install -y "$pkg" &>/dev/null; then
+                stop_spinner
+                log "Erorr installing $pkg"
+                return 1
+            fi
+            stop_spinner
+        fi
+    done
+}
+
+pip_install() {
+    for pkg in "$@"; do
+        if ! pip3 show "$pkg" &>/dev/null; then
+            log -n "Installing $pkg ... "
+            start_spinner
+            if ! sudo -H pip3 install "$pkg" &>/dev/null; then
+                stop_spinner
+                log "Error installing $pkg"
+                return 1
+            fi
+            stop_spinner
+        fi
+    done
+}
+
+# Program will exit here because of `set -e` if *Cancel* is selected causing
+#   whiptail to exit with an error code
+radiolist() {
+    # swap stdout, stderr using alias fd 3 for stdout
+    exec 3>&1 1>&2 2>&3
+
+    local term_rows="$(tput lines)"
+    local term_cols="$(tput cols)"
+
+    local list="$(for h in "$@"; do echo -n "'$h' '' OFF "; done | sed s/OFF/ON/)"
+    eval "
+        whiptail --title Dotpull --radiolist \
+        'Select a host playbook' \
+        "$(( $term_rows - 10 ))" \
+        "$(( $term_cols - 30 ))" \
+        "$#" \
+        $list
+    "
+}
+
+# Add the repository for ansible
+add_apt_repos ansible/ansible
+
+# Install dependencies for this script
+apt_install ansible python3-pip
+
+# Install dependencies for ansible
+pip_install github3.py
+
+# Prompt user to select host playbook
+host="$(radiolist cantou.yml pop-os.yml)"
 
 # Pull down and execute play for configuring local system
-ansible-pull --purge -U https://github.com/nelson137/dotpull --ask-vault-pass "$host.yml"
+log "Executing playbook $host ..."
+ansible-pull --purge -U https://github.com/nelson137/dotpull --ask-vault-pass "$host"
