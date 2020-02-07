@@ -37,5 +37,4 @@
 
 - name: Remove unused dependencies
   become: yes
-  apt:
-    autoremove: yes
+  apt: autoremove=yes
