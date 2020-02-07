@@ -3,7 +3,7 @@
 set -e
 
 [ "$EUID" -eq 0 ] && {
-    log 'error: must not be run as root'
+    echo 'error: must not be run as root'
     exit 1
 }
 
@@ -20,33 +20,33 @@ trap '[ -n "$SPINNER_PID" ] && /bin/kill "$SPINNER_PID"' EXIT
 # Cache sudo password
 sudo /bin/true
 
-log() {
-    echo "$@" >&2
-}
-
 start_spinner() {
     [ "$SPINNING" -eq 1 ] && return
+
+    exec 2>/dev/null
+
     while true; do
         for (( i=0; i<${#SPINNER}; i++ )); do
             tput sc
-            log -n "${SPINNER:$i:1} "
+            echo -n "${SPINNER:$i:1} "
             sleep .15
             tput rc
         done
     done &
+
     SPINNER_PID="$!"
 }
 
 stop_spinner() {
     [ -n "$SPINNER_PID" ] && /bin/kill "$SPINNER_PID"
     tput rc
-    log '  '
+    echo '  '
 }
 
 add_apt_repos() {
     for repo in "$@"; do
         apt-cache policy | grep -q "$repo" || {
-            log -n "Adding apt repository $repo ... "
+            echo -n "Adding apt repository $repo ... "
             start_spinner
             sudo add-apt-repository -yu "ppa:$repo" &>/dev/null
             stop_spinner
@@ -57,11 +57,11 @@ add_apt_repos() {
 apt_install() {
     for pkg in "$@"; do
         if ! dpkg -s "$pkg" &>/dev/null; then
-            log -n "Installing $pkg ... "
+            echo -n "Installing $pkg ... "
             start_spinner
             if ! sudo apt install -y "$pkg" &>/dev/null; then
                 stop_spinner
-                log "Erorr installing $pkg"
+                echo "Erorr installing $pkg"
                 return 1
             fi
             stop_spinner
@@ -72,11 +72,11 @@ apt_install() {
 pip_install() {
     for pkg in "$@"; do
         if ! pip3 show "$pkg" &>/dev/null; then
-            log -n "Installing $pkg ... "
+            echo -n "Installing $pkg ... "
             start_spinner
             if ! sudo -H pip3 install "$pkg" &>/dev/null; then
                 stop_spinner
-                log "Error installing $pkg"
+                echo "Error installing $pkg"
                 return 1
             fi
             stop_spinner
@@ -124,5 +124,5 @@ done
 [ -z "$HOST" ] && HOST="$(radiolist "${AVAILABLE_HOSTS[@]}")"
 
 # Pull down and execute play for configuring local system
-log "Executing playbook $HOST ..."
+echo "Executing playbook $HOST ..."
 ansible-pull --purge -U https://github.com/nelson137/dotpull --ask-vault-pass "$HOST"
