@@ -125,4 +125,7 @@ done
 
 # Pull down and execute play for configuring local system
 echo "Executing playbook $HOST ..."
-ansible-pull --purge -U https://github.com/nelson137/dotpull --ask-vault-pass "$HOST"
+ansible-pull --purge -U https://github.com/nelson137/dotpull \
+    -c local \
+    --vault-id=@prompt \
+    "$HOST"
