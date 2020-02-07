@@ -15,7 +15,7 @@ SPINNING=0
 SPINNER_PID=
 
 # Make sure spinner doesn't get left running
-trap '[ -n "$SPINNER_PID" ] && /bin/kill "$SPINNER_PID"' EXIT
+trap 'kill -9 "$SPINNER_PID" &>/dev/null || true' EXIT
 
 # Cache sudo password
 sudo /bin/true
@@ -38,7 +38,7 @@ start_spinner() {
 }
 
 stop_spinner() {
-    [ -n "$SPINNER_PID" ] && /bin/kill "$SPINNER_PID"
+    kill -9 "$SPINNER_PID" &>/dev/null || true
     tput rc
     echo '  '
 }
