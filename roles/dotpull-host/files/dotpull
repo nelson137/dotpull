@@ -7,6 +7,9 @@ set -e
     exit 1
 }
 
+AVAILABLE_HOSTS=( cantou.yml pop-os.yml )
+HOST=
+
 SPINNER='|/-\'
 SPINNING=0
 SPINNER_PID=
@@ -110,9 +113,16 @@ apt_install ansible python3-pip
 # Install dependencies for ansible
 pip_install github3.py
 
+while [ $# -ne 0 ]; do
+    case "$1" in
+        -h|--host) HOST="$2"; shift ;;
+    esac
+    shift
+done
+
 # Prompt user to select host playbook
-host="$(radiolist cantou.yml pop-os.yml)"
+[ -z "$HOST" ] && HOST="$(radiolist "${AVAILABLE_HOSTS[@]}")"
 
 # Pull down and execute play for configuring local system
-log "Executing playbook $host ..."
-ansible-pull --purge -U https://github.com/nelson137/dotpull --ask-vault-pass "$host"
+log "Executing playbook $HOST ..."
+ansible-pull --purge -U https://github.com/nelson137/dotpull --ask-vault-pass "$HOST"
