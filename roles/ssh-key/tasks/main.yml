@@ -1,6 +1,6 @@
 - name: Copy ssh key files
   copy:
-    src: "{{ item }}"
+    src: "{{ item }}.vault"
     dest: "{{ ansible_user_dir }}/.ssh/{{ item }}"
     mode: 0600
   loop:
