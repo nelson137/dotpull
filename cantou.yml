@@ -24,6 +24,7 @@
     - custom-motd
     - custom-motd-screenfetch
 
+    - sudo-as-admin-successful
     - selected-editor
     - ssh-key
     - oh-my-zsh

@@ -1,0 +1,4 @@
+- name: Touch ~/.sudo_as_admin_successful
+  file:
+    path: "{{ ansible_user_dir }}/.sudo_as_admin_successful"
+    state: touch
