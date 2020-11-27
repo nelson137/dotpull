@@ -25,36 +25,22 @@
       - libxkbcommon-x11-dev
       - xmlto
 
-- name: Get latest version
+- name: Get latest download url
   shell:
-    cmd: curl -sL https://api.github.com/repos/Airblader/i3/releases/latest | jq -r '.tag_name'
+    cmd: curl -sL https://api.github.com/repos/Airblader/i3/releases/latest | jq -r '.assets[] | select(.name|endswith(".tar.xz")).browser_download_url'
     warn: no
-  register: i3_gaps_v
+  register: download_url
   changed_when: false
 
-- name: Check if already downloaded
-  stat:
-    path: /tmp/i3-gaps
-  register: i3_gaps
-
-- when: i3_gaps.stat.exists == false
-  block:
-
-    - name: Download archive
-      get_url:
-        url: "https://github.com/Airblader/i3/releases/download/{{ i3_gaps_v.stdout }}/i3-{{ i3_gaps_v.stdout }}.tar.bz2"
-        dest: /tmp/i3-gaps.tar.bz2
-
-    - name: Create repo directory
-      file: path=/tmp/i3-gaps state=directory
-
-    - name: Extract archive
-      command:
-        cmd: tar xjf /tmp/i3-gaps.tar.bz2 -C /tmp/i3-gaps --strip-components 1
-        warn: no
-        creates: /tmp/i3-gaps/LICENSE
-      notify:
-        - remove i3-gaps archive
+- name: Download and extract archive
+  unarchive:
+    remote_src: yes
+    src: "{{ download_url.stdout }}"
+    dest: /tmp/i3-gaps
+    creates: /tmp/i3-gaps
+    extra_opts:
+      - --strip-components
+      - 1
 
 - name: Generate build scripts
   command:

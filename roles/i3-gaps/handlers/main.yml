@@ -1,5 +1,2 @@
-- name: remove i3-gaps archive
-  file: path=/tmp/i3-gaps.tar.bz2 state=absent
-
 - name: remove i3-gaps repo
   file: path=/tmp/i3-gaps state=absent
