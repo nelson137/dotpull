@@ -60,7 +60,7 @@
       unarchive:
         remote_src: yes
         src: /tmp/nextcloud.tar.bz2
-        dest: /var/www
+        dest: /var/www/nextcloud
         creates: /var/www/nextcloud
         owner: www-data
         group: www-data

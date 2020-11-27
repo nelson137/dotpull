@@ -14,9 +14,9 @@
     - name: Clone repo
       git:
         clone: yes
+        depth: 1
         repo: https://github.com/cylgom/ly
         dest: "{{ ly_dir }}"
-        depth: 1
 
     - name: Clone repo submodules
       make:
