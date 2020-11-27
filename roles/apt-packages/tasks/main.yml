@@ -2,6 +2,12 @@
   become: yes
   apt: upgrade=dist
 
+- name: Add custom PPAs
+  become: yes
+  apt_repository:
+    repo: "ppa:{{ item }}"
+  loop: "{{ custom_ppas | default([]) }}"
+
 - name: Install packages
   become: yes
   apt:
@@ -29,7 +35,7 @@
       - zip
       - zsh
 
-- name: Install system-specific packages
+- name: Install custom packages
   become: yes
   apt:
     state: latest
