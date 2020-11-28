@@ -257,6 +257,8 @@ main() {
         shift
     done
 
+    apt_install curl jq
+
     get_playbooks_list
 
     # Validate the given playbook or have user choose one
