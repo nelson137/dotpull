@@ -2,8 +2,11 @@
 
 set -e
 
-# Cache sudo password
-sudo /bin/true
+if [ "$EUID" -ne 0 ]; then
+    echo 'error: must be run as root' >&2
+    echo "Try: sudo $0 $*" >&2
+    exit 1
+fi
 
 PLAYBOOKS=()
 PLAYBOOK_CHOICE=
@@ -165,7 +168,7 @@ select_playbook() {
 apt_update() {
     info apt 'Updating package information ... '
     _start_spinner
-    if ! sudo apt update -y &>/dev/null; then
+    if ! apt update -y &>/dev/null; then
         err "apt: unable to update"
     fi
     _stop_spinner "$CHECK_MARK"
@@ -178,7 +181,7 @@ apt_install() {
         else
             info apt "Installing $pkg ... "
             _start_spinner
-            if ! sudo apt install -y "$pkg" &>/dev/null; then
+            if ! apt install -y "$pkg" &>/dev/null; then
                 err "apt: unable to install package: $pkg"
             fi
             _stop_spinner "$CHECK_MARK"
