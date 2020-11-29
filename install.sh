@@ -162,21 +162,6 @@ select_playbook() {
     RETVAL="${books[$selection]}"
 }
 
-add_apt_repos() {
-    for repo in "$@"; do
-        if apt-cache policy | grep -q "$repo"; then
-            info_nl apt-repo "Repository already added: $repo"
-        else
-            info apt-repo "Adding apt repository $repo ... "
-            _start_spinner
-            if ! sudo add-apt-repository -y "ppa:$repo" &>/dev/null; then
-                err "add-apt-repository: unable to add repo: $repo"
-            fi
-            _stop_spinner "$CHECK_MARK"
-        fi
-    done
-}
-
 apt_update() {
     info apt 'Updating package information ... '
     _start_spinner
@@ -258,6 +243,7 @@ main() {
         shift
     done
 
+    apt_update
     apt_install curl jq
 
     get_playbooks_list
@@ -272,10 +258,7 @@ main() {
         printf '\n'
     fi
 
-    add_apt_repos ansible/ansible
-    apt_update
-
-    apt_install ansible python3 python3-pip
+    apt_install python3 python3-pip
 
     pip3_upgrade
 
@@ -283,7 +266,7 @@ main() {
     # it conflicts with the python3 package
     pip2_uninstall docker-py
 
-    pip3_install docker
+    pip3_install ansible docker
 
     local title="Executing playbook: $PLAYBOOK_CHOICE"
     printf "\n${GREEN}${BOLD}"
