@@ -278,10 +278,8 @@ main() {
     echo "  ▐▙▄$(printf "▄%.0s" $(seq ${#title}))▄▟▌"
     printf "${RESET}\n"
 
-    ansible-pull --purge -U "$REPO_URL" \
-        -c local \
-        --vault-id=@prompt \
-        "$PLAYBOOK_CHOICE"
+    ansible-pull "$PLAYBOOK_CHOICE" -U "$REPO_URL" \
+        --purge -c local --ask-become-pass --vault-id=@prompt
 }
 
 main "$@"
