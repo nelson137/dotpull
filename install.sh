@@ -150,7 +150,8 @@ select_playbook() {
 
         printf "${BOLD}Choice [0-$num] ${YELLOW}> "
         # Can't use `read -p` because stderr was redirected to /dev/null
-        read -r selection
+        # Redirect in /dev/tty so this script works even when piped into bash
+        read -r selection </dev/tty
         printf "$RESET"
 
         (( selection == -1 )) && exit 0
