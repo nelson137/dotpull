@@ -1,0 +1,4 @@
+- name: Install rustup
+  shell:
+    cmd: curl -sL https://sh.rustup.rs | sh -s -- --no-modify-path -y
+    warn: no
