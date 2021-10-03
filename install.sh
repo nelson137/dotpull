@@ -23,9 +23,7 @@ RESET="$(tput sgr0)"
 CHECK_MARK="${BOLD}${GREEN}✓${RESET}"
 
 ##################################################
-#
 # SPINNER
-#
 ##################################################
 
 SPINNER='|/-\'
@@ -40,7 +38,7 @@ _quiet_kill() {
 }
 
 _start_spinner() {
-    [[ "$SPINNER_PID" ]] && return
+    [ -n "$SPINNER_PID" ] && return
 
     while true; do
         for (( i=0; i<${#SPINNER}; i++ )); do
@@ -64,9 +62,7 @@ _stop_spinner() {
 }
 
 ##################################################
-#
 # GITHUB API
-#
 ##################################################
 
 USER='nelson137'
@@ -93,19 +89,17 @@ _get_playbooks_from_head() {
 
     _api_get "/git/trees/$head_tree_sha"
     echo "$RETVAL" | jq -r '
-        def is_yaml: (.|endswith(".yml")) or (.|endswith(".yaml"));
-        .tree | map(.path)[] | select(.|is_yaml)
+        def is_yaml: endswith(".yml") or endswith(".yaml");
+        .tree | map(.path)[] | select(is_yaml)
     '
 }
 
 ##################################################
-#
 # UTILITIES
-#
 ##################################################
 
 err() {
-    [[ "$SPINNER_PID" ]] && _stop_spinner
+    [ -n "$SPINNER_PID" ] && _stop_spinner
     echo "error: $*" >&2
     exit 1
 }
@@ -133,15 +127,15 @@ validate_playbook() {
     local choice="$1"; shift
     local playbooks=( "$@" )
     while [ $# -gt 0 ]; do
-        [[ "$choice" == "$1" ]] && return
+        [ "$choice" = "$1" ] && return
         shift
     done
     err "playbook must be one of: ${playbooks[@]}"
 }
 
 select_playbook() {
-    local selection books=( "$@" )
-    local num=$(( $# - 1 ))
+    local selection num=$(( $# - 1 ))
+    local -a books=( "$@" )
 
     while true; do
         echo 'Select a host playbook:'
@@ -227,13 +221,11 @@ pip3_install() {
 }
 
 ##################################################
-#
 # MAIN
-#
 ##################################################
 
 usage() {
-    echo 'Usage: install.sh PLAYBOOK.yml'
+    echo "Usage: $0 PLAYBOOK.yml"
     exit "${1:-0}"
 }
 
@@ -241,7 +233,7 @@ main() {
     while [ $# -gt 0 ]; do
         case "$1" in
             -h|--help) usage ;;
-            *) [[ "$PLAYBOOK_CHOICE" ]] && usage 1 || PLAYBOOK_CHOICE="$1" ;;
+            *) [ -n "$PLAYBOOK_CHOICE" ] && usage 1 || PLAYBOOK_CHOICE="$1" ;;
         esac
         shift
     done
@@ -252,7 +244,7 @@ main() {
     get_playbooks_list
 
     # Validate the given playbook or have user choose one
-    if [[ "$PLAYBOOK_CHOICE" ]]; then
+    if [ -n "$PLAYBOOK_CHOICE" ]; then
         validate_playbook "$PLAYBOOK_CHOICE" "${PLAYBOOKS[@]}"
     else
         printf '\n'
