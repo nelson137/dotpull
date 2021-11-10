@@ -4,9 +4,9 @@
 
   roles:
     - role: apt-packages
-      custom_ppas:
+      extra_ppas:
         - snwh/ppa
-      custom_pkgs:
+      extra_pkgs:
         - paper-icon-theme
         - scrot
         - vlc

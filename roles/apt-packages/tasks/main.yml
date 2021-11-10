@@ -2,11 +2,11 @@
   become: yes
   apt: upgrade=dist
 
-- name: Add custom PPAs
+- name: Add extra PPAs
   become: yes
   apt_repository:
     repo: "ppa:{{ item }}"
-  loop: "{{ custom_ppas | default([]) }}"
+  loop: "{{ extra_ppas | default([]) }}"
 
 - name: Install packages
   become: yes
@@ -35,11 +35,11 @@
       - zip
       - zsh
 
-- name: Install custom packages
+- name: Install extra packages
   become: yes
   apt:
     state: latest
-    name: "{{ system_specific | default([]) }}"
+    name: "{{ extra_pkgs | default([]) }}"
 
 - name: Remove unused dependencies
   become: yes
