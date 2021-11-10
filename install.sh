@@ -37,7 +37,7 @@ _quiet_kill() {
     wait "$@" &>/dev/null || true
 }
 
-_start_spinner() {
+start_spinner() {
     [ -n "$SPINNER_PID" ] && return
 
     while true; do
@@ -45,7 +45,7 @@ _start_spinner() {
             tput sc
             # Must use '--' because `printf '- '` is an error,
             # it thinks the '-' is part of a flag
-            printf -- "${SPINNER:$i:1} "
+            printf -- "${*}${SPINNER:$i:1} "
             sleep .15
             tput rc
         done
@@ -54,11 +54,11 @@ _start_spinner() {
     SPINNER_PID="$!"
 }
 
-_stop_spinner() {
+stop_spinner() {
     _quiet_kill "$SPINNER_PID"
     SPINNER_PID=
     tput rc
-    printf '%2s\n' "$*"
+    printf '\e[0K%s\n' "$*"
 }
 
 ##################################################
@@ -69,26 +69,30 @@ USER='nelson137'
 REPO='dotpull'
 API_URL="https://api.github.com/repos/$USER/$REPO"
 
-_api_get() {
-    RETVAL="$(curl -sSL "${API_URL}${1}")"
-    if echo "$RETVAL" | grep -q 'API rate limit exceeded'; then
-        curl -sSLI 'https://api.github.com' | awk '
-            /^X-Ratelimit-Reset:/{ reset=$2 }
-            END {
+github_api() {
+    local header response
+    header="$(mktemp /tmp/github-api-header-XXXXXX.json)"
+    trap "rm -f '$header'" EXIT
+    response="$(curl -sSLD "$header" "${API_URL}${1}")"
+    if echo "$response" | grep -q 'API rate limit exceeded'; then
+        awk -v IGNORECASE=1 '
+            /^X-Ratelimit-Reset:/{
                 print "error: github: rate limit met, will reset at",
-                    strftime("%Y-%m-%d %I:%M:%S %P", reset)
+                    strftime("%Y-%m-%d %I:%M:%S %P", $2)
+                exit 1
             }
-        ' >&2
+        ' "$header" >&2
         exit 1
     fi
+    trap EXIT # clear trap
+    echo "$response"
 }
 
 _get_playbooks_from_head() {
-    _api_get /commits
-    local head_tree_sha="$(echo "$RETVAL" | jq -r '.[0].commit.tree.sha')"
+    local head_sha
+    local head_sha="$(github_api /commits | jq -r '.[0].commit.tree.sha')"
 
-    _api_get "/git/trees/$head_tree_sha"
-    echo "$RETVAL" | jq -r '
+    github_api "/git/trees/$head_sha" | jq -r '
         def is_yaml: endswith(".yml") or endswith(".yaml");
         .tree | map(.path)[] | select(is_yaml)
     '
@@ -99,7 +103,7 @@ _get_playbooks_from_head() {
 ##################################################
 
 err() {
-    [ -n "$SPINNER_PID" ] && _stop_spinner
+    [ -n "$SPINNER_PID" ] && stop_spinner
     echo "error: $*" >&2
     exit 1
 }
@@ -114,13 +118,13 @@ info_nl() {
     info "$tag" "$*\n"
 }
 
-get_playbooks_list() {
+get_playbook_list() {
     info github 'Getting list of playbooks from HEAD of master/origin ... '
-    _start_spinner
+    start_spinner
     while read name; do
         PLAYBOOKS+=( "$name" )
     done < <(_get_playbooks_from_head)
-    _stop_spinner "$CHECK_MARK"
+    stop_spinner "$CHECK_MARK"
 }
 
 validate_playbook() {
@@ -138,84 +142,91 @@ select_playbook() {
     local -a books=( "$@" )
 
     while true; do
-        echo 'Select a host playbook:'
-        echo '======================='
+        echo 'Select a host playbook:' >&2
+        echo '=======================' >&2
         for (( i=0; i<$#; i++ )); do
-            echo "  $i) ${books[$i]}"
+            echo "  $i) ${books[$i]}" >&2
         done
-        printf '\n'
+        printf '\n' >&2
 
-        printf "${BOLD}Choice [0-$num] ${YELLOW}> "
+        printf "${BOLD}Choice (q to quit) ${YELLOW}> " >&2
         # Can't use `read -p` because stderr was redirected to /dev/null
         # Redirect in /dev/tty so this script works even when piped into bash
         read -r selection </dev/tty
-        printf "$RESET"
+        printf "$RESET" >&2
 
-        (( selection == -1 )) && exit 0
+        [[ $selection == q ]] && return 1
         (( 0 <= selection && selection < $# )) && break
-        printf '\n'
+
+        printf '\n' >&2
     done
 
-    RETVAL="${books[$selection]}"
+    echo "${books[$selection]}"
 }
 
 apt_update() {
-    info apt 'Updating package information ... '
-    _start_spinner
+    info apt 'Updating package index ... '
+    start_spinner
     if ! apt update -y &>/dev/null; then
         err "apt: unable to update"
     fi
-    _stop_spinner "$CHECK_MARK"
+    stop_spinner "$CHECK_MARK"
 }
 
 apt_install() {
     for pkg in "$@"; do
+        info apt "Checking for package $pkg ... "
+        start_spinner
         if dpkg -s "$pkg" &>/dev/null; then
-            info_nl apt "Package already installed: $pkg"
+            stop_spinner "$CHECK_MARK"
         else
+            stop_spinner 'not installed'
             info apt "Installing $pkg ... "
-            _start_spinner
+            start_spinner
             if ! apt install -y "$pkg" &>/dev/null; then
                 err "apt: unable to install package: $pkg"
             fi
-            _stop_spinner "$CHECK_MARK"
+            stop_spinner "$CHECK_MARK"
         fi
     done
 }
 
 pip3_upgrade() {
     info pip3 'Upgrading pip ... '
-    _start_spinner
+    start_spinner
     if ! pip3 install --upgrade pip &>/dev/null; then
         err "pip3: unable to upgrade pip"
     fi
-    _stop_spinner "$CHECK_MARK"
+    stop_spinner "$CHECK_MARK"
 }
 
 pip2_uninstall() {
     for pkg in "$@"; do
         if pip2 show "$pkg" &>/dev/null; then
             info pip2 "Uninstalling $pkg ... "
-            _start_spinner
+            start_spinner
             if ! pip2 uninstall "$pkg" &>/dev/null; then
                 err "pip2: unable to uninstall package: $pkg"
             fi
-            _stop_spinner "$CHECK_MARK"
+            stop_spinner "$CHECK_MARK"
         fi
     done
 }
 
 pip3_install() {
     for pkg in "$@"; do
+        info pip3 "Checking for package $pkg ... "
+        start_spinner
         if pip3 show "$pkg" &>/dev/null; then
-            info_nl pip3 "Package already installed: $pkg"
+            stop_spinner "$CHECK_MARK"
         else
+            stop_spinner 'not installed'
             info pip3 "Installing $pkg ... "
-            _start_spinner
+            start_spinner
             if ! pip3 install "$pkg" &>/dev/null; then
                 err "pip3: unable to install package: $pkg"
             fi
-            _stop_spinner "$CHECK_MARK"
+            stop_spinner "$CHECK_MARK"
         fi
     done
 }
@@ -239,21 +250,20 @@ main() {
     done
 
     apt_update
-    apt_install curl jq
+    apt_install curl git gnupg jq
 
-    get_playbooks_list
+    get_playbook_list
 
     # Validate the given playbook or have user choose one
     if [ -n "$PLAYBOOK_CHOICE" ]; then
         validate_playbook "$PLAYBOOK_CHOICE" "${PLAYBOOKS[@]}"
     else
         printf '\n'
-        select_playbook "${PLAYBOOKS[@]}"
-        PLAYBOOK_CHOICE="$RETVAL"
+        PLAYBOOK_CHOICE="$(select_playbook "${PLAYBOOKS[@]}")" || return 0
         printf '\n'
     fi
 
-    apt_install python3 python3-pip
+    apt_install python3 python3-pip python3-apt
 
     pip3_upgrade
 
@@ -274,8 +284,8 @@ main() {
     ANSIBLE_NOCOWS=true \
     ANSIBLE_NOCOLOR=false \
     ANSIBLE_RETRY_FILES_ENABLED=false \
-        ansible-pull -U "$REPO_URL" "$PLAYBOOK_CHOICE" \
-            --ask-become-pass --vault-id=@prompt --purge -c local
+        exec ansible-pull -U "$REPO_URL" --purge "$PLAYBOOK_CHOICE" \
+            --ask-become-pass --vault-id=@prompt -c local
 }
 
 main "$@"
