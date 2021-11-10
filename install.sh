@@ -10,7 +10,9 @@ fi
 
 PLAYBOOKS=()
 PLAYBOOK_CHOICE=
-REPO_URL='https://github.com/nelson137/dotpull'
+REPO='nelson137/dotpull'
+REPO_URL="https://github.com/$REPO"
+INVENTORY_URL="https://raw.githubusercontent.com/$REPO/master/inventory.ini"
 
 alias pip2='python2 -m pip 2>&1'
 alias pip3='python3 -m pip 2>&1'
@@ -280,12 +282,14 @@ main() {
     echo "  ▐▙▄$(printf "▄%.0s" $(seq ${#title}))▄▟▌"
     printf "${RESET}\n"
 
+    curl -sSL "$INVENTORY_URL" -o /tmp/inventory.ini
+
     ANSIBLE_PYTHON_INTERPRETER="$(which python3)" \
     ANSIBLE_NOCOWS=true \
     ANSIBLE_NOCOLOR=false \
     ANSIBLE_RETRY_FILES_ENABLED=false \
         exec ansible-pull -U "$REPO_URL" --purge "$PLAYBOOK_CHOICE" \
-            --ask-become-pass --vault-id=@prompt -c local
+            --ask-become-pass --vault-id=@prompt -i /tmp/inventory.ini -c local
 }
 
 main "$@"
