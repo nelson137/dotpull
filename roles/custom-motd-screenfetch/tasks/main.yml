@@ -2,7 +2,7 @@
   apt: name=screenfetch state=latest
 
 - name: Install custom header script
-  become: yes
+  become: true
   copy:
     src: 00-custom-header
     dest: /etc/update-motd.d/00-custom-header

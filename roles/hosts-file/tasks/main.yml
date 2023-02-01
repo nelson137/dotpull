@@ -1,5 +1,5 @@
 - name: Copy template
-  become: yes
+  become: true
   template:
     src: hosts.j2
     dest: /etc/hosts
@@ -10,7 +10,7 @@
     path: /etc/cloud/cloud.cfg
 
 - name: Prevent cloud-init from modifying hostname
-  become: yes
+  become: true
   lineinfile:
     path: "{{ cloud_cfg.stat.path }}"
     regexp: "^preserve_hostname: false"

@@ -1,12 +1,12 @@
 - name: Disable news
-  become: yes
+  become: true
   lineinfile:
     path: /etc/default/motd-news
     regexp: "^(ENABLED)=1"
     line: '\1=0'
 
 - name: Disable scripts
-  become: yes
+  become: true
   file:
     path: "/etc/update-motd.d/{{ item }}"
     mode: -x

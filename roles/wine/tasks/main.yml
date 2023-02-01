@@ -1,13 +1,13 @@
 - name: Add apt key
-  become: yes
+  become: true
   apt_key: url=https://dl.winehq.org/wine-builds/winehq.key
 
 - name: Add apt repository
-  become: yes
+  become: true
   apt_repository:
     filename: wine
     repo: deb https://dl.winehq.org/wine-builds/ubuntu/ {{ ansible_lsb['codename'] }} main
 
 - name: Install
-  become: yes
+  become: true
   apt: name=wine-stable-amd64 state=latest

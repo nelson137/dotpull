@@ -1,4 +1,4 @@
 ---
 dependencies:
-  - apache2
-  - apache2-ssl
+  - role: apache2
+  - role: apache2-ssl

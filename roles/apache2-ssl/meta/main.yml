@@ -1,5 +1,5 @@
 ---
 dependencies:
-  - apache2
-  - docker
-  - docker-compose
+  - role: apache2
+  - role: docker
+  - role: docker-compose

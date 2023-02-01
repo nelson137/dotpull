@@ -11,11 +11,11 @@
   file: path=/tmp/nextcloud.tar.bz2 state=absent
 
 - name: update nextcloud htaccess
-  become: yes
+  become: true
   become_user: www-data
   command: php /var/www/nextcloud/occ maintenance:update:htaccess
 
 - name: reindex nextcloud files
-  become: yes
+  become: true
   become_user: www-data
   command: php /var/www/nextcloud/occ files:scan "{{ admin_user }}"

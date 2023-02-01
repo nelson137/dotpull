@@ -1,6 +1,6 @@
 ---
 - hosts: self
-  become: yes
+  become: true
 
   roles:
     - role: apt-packages

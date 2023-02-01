@@ -1,4 +1,4 @@
 - name: Update
-  become: yes
+  become: true
   hostname:
     name: "{{ new_hostname }}"

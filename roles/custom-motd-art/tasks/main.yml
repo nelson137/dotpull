@@ -1,12 +1,12 @@
 - name: Install custom header script
-  become: yes
+  become: true
   copy:
     src: 00-custom-header
     dest: /etc/update-motd.d/00-custom-header
     mode: u=rwx,g=rx,o=rx
 
 - name: Install cron job
-  become: yes
+  become: true
   cron:
     name: Cache external ip address for motd
     minute: "*/10"

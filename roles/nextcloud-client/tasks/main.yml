@@ -1,7 +1,7 @@
 - name: Add apt repository
-  become: yes
+  become: true
   apt_repository: repo=ppa:nextcloud-devs/client
 
 - name: Install client
-  become: yes
+  become: true
   apt: name=nextcloud-client state=latest

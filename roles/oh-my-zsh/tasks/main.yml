@@ -24,7 +24,7 @@
         - remove install script
 
 - name: Change user shell to zsh
-  become: yes
+  become: true
   user:
     name: "{{ ansible_user }}"
     shell: /usr/bin/zsh

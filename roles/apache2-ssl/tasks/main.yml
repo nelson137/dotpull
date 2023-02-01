@@ -1,35 +1,34 @@
 - name: Create challenge container directory
-  become: yes
+  become: true
   file: path=/docker/letsencrypt state=directory
 
 - name: Copy docker-compose definition for challenge container
-  become: yes
+  become: true
   copy: src=docker-compose.yml dest=/docker/letsencrypt/docker-compose.yml
 
 - name: Copy nginx config for challenge
-  become: yes
+  become: true
   template: src=nginx.conf.j2 dest=/docker/letsencrypt/nginx.conf
 
 - name: Copy LetsEncrypt command script
-  become: yes
+  become: true
   copy: src=le-cmd dest=/docker/letsencrypt/le-cmd mode=0775
 
 - name: Install dependencies for ansible docker modules
-  become: yes
+  become: true
   pip:
     name:
       - docker
       - docker-compose
 
 - name: Check if LetsEncrypt certificate already exists
-  become: yes
+  become: true
   stat:
     path: "/etc/letsencrypt/live/{{ domain }}"
   register: le_cert
 
-- name:
-  become: yes
-  when: le_cert.stat.exists == false
+- when: le_cert.stat.exists == false
+  become: true
   block:
     - name: Stop apache2 service
       service: name=apache2 state=stopped
@@ -59,7 +58,7 @@
       service: name=apache2 state=started
 
 - name: Install cron job to renew the certificate
-  become: yes
+  become: true
   cron:
     name: renew LetsEncrypt certificate
     user: root
@@ -68,20 +67,20 @@
     job: /docker/letsencrypt/le-cmd "{{ domain }}" cert-renew
 
 - name: Disable apache ServerToken
-  become: yes
+  become: true
   lineinfile:
     path: /etc/apache2/conf-available/security.conf
     regexp: '^ServerTokens .*'
     line: ServerTokens ProductOnly
 
 - name: Generate Diffie-Hellman parameters
-  become: yes
+  become: true
   openssl_dhparam:
     size: 4096
     path: /etc/ssl/certs/dhparam.pem
 
 - name: Enable apache modules
-  become: yes
+  become: true
   apache2_module:
     name: "{{ item }}"
   loop:
@@ -92,7 +91,7 @@
     - restart apache2
 
 - name: Disable default SSL config
-  become: yes
+  become: true
   command:
     cmd: a2ensite default-ssl
     removes: /etc/apache2/sites-enabled/default-ssl.conf
@@ -100,13 +99,13 @@
     - restart apache2
 
 - name: Remove default SSL config
-  become: yes
+  become: true
   file: path=/etc/apache2/sites-available/default-ssl.conf state=absent
   notify:
     - restart apache2
 
 - name: Copy SSL options config
-  become: yes
+  become: true
   template:
     src: ssl-options.conf.j2
     dest: /etc/apache2/ssl-options.conf
@@ -114,7 +113,7 @@
     - restart apache2
 
 - name: Copy default site config
-  become: yes
+  become: true
   template: src=000-default.conf.j2 dest=/etc/apache2/sites-available/000-default.conf
   notify:
     - restart apache2

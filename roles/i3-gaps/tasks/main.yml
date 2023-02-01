@@ -1,5 +1,5 @@
 - name: Install dependencies
-  become: yes
+  become: true
   apt:
     state: latest
     name:
@@ -61,7 +61,7 @@
   make: chdir=/tmp/i3-gaps/build
 
 - name: Install
-  become: yes
+  become: true
   make: chdir=/tmp/i3-gaps/build target=install
   notify:
     - remove i3-gaps repo

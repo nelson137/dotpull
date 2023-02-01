@@ -1,5 +1,5 @@
 - name: Install packages
-  become: yes
+  become: true
   snap:
     name:
       - spotify

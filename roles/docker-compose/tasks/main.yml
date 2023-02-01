@@ -6,7 +6,7 @@
   changed_when: false
 
 - name: Download and install
-  become: yes
+  become: true
   get_url:
     url: "{{ download_url.stdout }}"
     dest: /usr/local/bin/docker-compose

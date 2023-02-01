@@ -21,11 +21,11 @@
         mode: +x
 
     - name: Execute setup script
-      become: yes
+      become: true
       command: /tmp/setup-nodejs
       notify:
         - remove nodejs setup script
 
     - name: Install
-      become: yes
+      become: true
       apt: name=nodejs state=latest

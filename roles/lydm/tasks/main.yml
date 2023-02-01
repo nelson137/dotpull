@@ -1,5 +1,5 @@
 - name: Install dependencies
-  become: yes
+  become: true
   apt:
     state: latest
     name:
@@ -28,7 +28,7 @@
         chdir: "{{ ly_dir }}"
 
     - name: Install
-      become: yes
+      become: true
       make:
         chdir: "{{ ly_dir }}"
         target: install
@@ -36,10 +36,10 @@
         - remove lydm repo
 
 - name: Disable old display manager
-  become: yes
+  become: true
   service: name=display-manager enabled=no
   failed_when: false
 
 - name: Enable service
-  become: yes
+  become: true
   service: name=ly enabled=yes

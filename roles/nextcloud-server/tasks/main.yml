@@ -1,5 +1,5 @@
 - name: Install PHP dependencies
-  become: yes
+  become: true
   apt:
     state: latest
     name:
@@ -56,7 +56,7 @@
         - remove nextcloud server archive pgp signature
 
     - name: Extract archive
-      become: yes
+      become: true
       unarchive:
         remote_src: yes
         src: /tmp/nextcloud.tar.bz2
@@ -68,7 +68,7 @@
         - remove nextcloud server archive
 
 - name: Enable apache modules
-  become: yes
+  become: true
   apache2_module:
     name: "{{ item }}"
   loop:
@@ -82,11 +82,11 @@
     - restart apache2
 
 - name: Copy site config
-  become: yes
+  become: true
   template: src=nextcloud.conf.j2 dest=/etc/apache2/sites-available/nextcloud.conf
 
 - name: Enable site config
-  become: yes
+  become: true
   command:
     cmd: a2ensite nextcloud
     creates: /etc/apache2/sites-enabled/nextcloud.conf
@@ -94,13 +94,13 @@
     - restart apache2
 
 - name: Copy MariaDB config
-  become: yes
+  become: true
   copy:
     src: 60-nextcloud.cnf
     dest: /etc/mysql/mariadb.conf.d/60-nextcloud.cnf
 
 - name: Check if MySQL database already setup
-  become: yes
+  become: true
   shell: mysql -sNe 'USE nextcloud; SELECT @@character_set_database,@@collation_database' | grep -Pq 'utf8mb4\tutf8mb4_general_ci'
   register: nc_db_is_setup
   failed_when: false
@@ -108,12 +108,12 @@
 
 - name: Delete any existing database
   when: nc_db_is_setup.rc != 0
-  become: yes
+  become: true
   command: mysql -e 'DROP DATABASE IF EXISTS nextcloud'
 
 - name: Setup MySQL database
   when: nc_db_is_setup.rc != 0
-  become: yes
+  become: true
   command: mysql -e "CREATE DATABASE nextcloud CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci; CREATE USER IF NOT EXISTS '{{ db_user }}'@'localhost' IDENTIFIED BY '{{ db_pass }}'; GRANT ALL PRIVILEGES ON nextcloud.* TO '{{ db_user }}'@'localhost' IDENTIFIED BY '{{ db_pass }}'; FLUSH PRIVILEGES"
 
 - name: Check if already installed
@@ -122,19 +122,19 @@
 
 - name: Install
   when: nc_config.stat.exists == false
-  become: yes
+  become: true
   become_user: www-data
   command: php /var/www/nextcloud/occ maintenance:install --database mysql --database-name nextcloud --database-user "{{ db_user }}" --database-pass "{{ db_pass }}" --admin-user "{{ admin_user }}" --admin-pass "{{ admin_pass }}"
 
 - name: Add trusted domain to config
-  become: yes
+  become: true
   lineinfile:
     path: /var/www/nextcloud/config/config.php
     insertafter: "0 => 'localhost',"
     line: "    1 => 'cloud.{{ domain }}',"
 
 - name: Fix url rewrite in config
-  become: yes
+  become: true
   lineinfile:
     path: /var/www/nextcloud/config/config.php
     regexp: "  'overwrite\\.cli\\.url' => 'http://localhost',"
@@ -143,7 +143,7 @@
     - update nextcloud htaccess
 
 - name: Add htaccess RewriteBase to config
-  become: yes
+  become: true
   lineinfile:
     path: /var/www/nextcloud/config/config.php
     insertafter: 'overwrite.cli.url'
@@ -152,14 +152,14 @@
     - update nextcloud htaccess
 
 - name: Enable MySQL utf8mb4 charset in config
-  become: yes
+  become: true
   lineinfile:
     path: /var/www/nextcloud/config/config.php
     insertafter: 'dbpassword'
     line: "  'mysql.utf8mb4' => true,"
 
 - name: Cleanup Nextcloud files
-  become: yes
+  become: true
   file:
     path: "/var/www/nextcloud/data/{{ admin_user }}/files/{{ item }}"
     state: absent

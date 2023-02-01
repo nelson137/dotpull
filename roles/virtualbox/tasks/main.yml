@@ -1,15 +1,15 @@
 - name: Add apt source
-  become: yes
+  become: true
   template: src=virtualbox.list.j2 dest=/etc/apt/sources.list.d/virtualbox.list
 
 - name: Add old apt key
-  become: yes
+  become: true
   apt_key: url=https://virtualbox.org/download/oracle_vbox_2016.asc
 
 - name: Add new apt key
-  become: yes
+  become: true
   apt_key: url=https://virtualbox.org/download/oracle_vbox.asc
 
 - name: Install
-  become: yes
+  become: true
   apt: name=virtualbox state=latest update_cache=yes

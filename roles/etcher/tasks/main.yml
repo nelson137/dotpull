@@ -15,6 +15,6 @@
       changed_when: false
 
     - name: Download and install
-      become: yes
+      become: true
       apt:
         deb: "{{ etcher_url }}/download/balena-etcher-electron_{{ etcher_version.stdout }}_amd64.deb"
