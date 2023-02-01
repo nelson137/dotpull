@@ -14,9 +14,6 @@ REPO='nelson137/dotpull'
 REPO_URL="https://github.com/$REPO"
 INVENTORY_URL="https://raw.githubusercontent.com/$REPO/master/inventory.ini"
 
-alias pip2='python2 -m pip 2>&1'
-alias pip3='python3 -m pip 2>&1'
-
 BOLD="$(tput bold)"
 GREEN="$(tput setaf 2)"
 YELLOW="$(tput setaf 3)"
@@ -27,6 +24,8 @@ CHECK_MARK="${BOLD}${GREEN}✓${RESET}"
 ##################################################
 # SPINNER
 ##################################################
+
+# region spinner
 
 SPINNER='|/-\'
 SPINNER_PID=
@@ -63,9 +62,13 @@ stop_spinner() {
     printf '\e[0K%s\n' "$*"
 }
 
+# endregion
+
 ##################################################
 # GITHUB API
 ##################################################
+
+# region github api
 
 USER='nelson137'
 REPO='dotpull'
@@ -92,7 +95,7 @@ github_api() {
 
 _get_playbooks_from_head() {
     local head_sha
-    local head_sha="$(github_api /commits | jq -r '.[0].commit.tree.sha')"
+    head_sha="$(github_api /commits | jq -r '.[0].commit.tree.sha')"
 
     github_api "/git/trees/$head_sha" | jq -r '
         def is_yaml: endswith(".yml") or endswith(".yaml");
@@ -100,9 +103,13 @@ _get_playbooks_from_head() {
     '
 }
 
+# endregion
+
 ##################################################
-# UTILITIES
+# LOGGING
 ##################################################
+
+# region logging
 
 err() {
     [ -n "$SPINNER_PID" ] && stop_spinner
@@ -119,6 +126,14 @@ info_nl() {
     local tag="$1"; shift
     info "$tag" "$*\n"
 }
+
+# endregion
+
+##################################################
+# CORE
+##################################################
+
+# region core
 
 get_playbook_list() {
     info github 'Getting list of playbooks from HEAD of master/origin ... '
@@ -140,7 +155,7 @@ validate_playbook() {
 }
 
 select_playbook() {
-    local selection num=$(( $# - 1 ))
+    local selection
     local -a books=( "$@" )
 
     while true; do
@@ -193,21 +208,14 @@ apt_install() {
     done
 }
 
-pip3_upgrade() {
-    info pip3 'Upgrading pip ... '
-    start_spinner
-    if ! pip3 install --upgrade pip &>/dev/null; then
-        err "pip3: unable to upgrade pip"
-    fi
-    stop_spinner "$CHECK_MARK"
-}
+_pip2() { python2 -m pip "$@" &>/dev/null; }
 
 pip2_uninstall() {
     for pkg in "$@"; do
-        if pip2 show "$pkg" &>/dev/null; then
+        if _pip2 show "$pkg"; then
             info pip2 "Uninstalling $pkg ... "
             start_spinner
-            if ! pip2 uninstall "$pkg" &>/dev/null; then
+            if ! _pip2 uninstall "$pkg"; then
                 err "pip2: unable to uninstall package: $pkg"
             fi
             stop_spinner "$CHECK_MARK"
@@ -215,17 +223,28 @@ pip2_uninstall() {
     done
 }
 
+_pip3() { python3 -m pip "$@" &>/dev/null; }
+
+pip3_upgrade() {
+    info pip3 'Upgrading pip ... '
+    start_spinner
+    if ! _pip3 install --upgrade pip; then
+        err "pip3: unable to upgrade pip"
+    fi
+    stop_spinner "$CHECK_MARK"
+}
+
 pip3_install() {
     for pkg in "$@"; do
         info pip3 "Checking for package $pkg ... "
         start_spinner
-        if pip3 show "$pkg" &>/dev/null; then
+        if _pip3 show "$pkg"; then
             stop_spinner "$CHECK_MARK"
         else
             stop_spinner 'not installed'
             info pip3 "Installing $pkg ... "
             start_spinner
-            if ! pip3 install "$pkg" &>/dev/null; then
+            if ! _pip3 install "$pkg"; then
                 err "pip3: unable to install package: $pkg"
             fi
             stop_spinner "$CHECK_MARK"
@@ -233,9 +252,13 @@ pip3_install() {
     done
 }
 
+# endregion
+
 ##################################################
 # MAIN
 ##################################################
+
+# region main
 
 usage() {
     echo "Usage: $0 PLAYBOOK.yml"
@@ -265,13 +288,13 @@ main() {
         printf '\n'
     fi
 
-    apt_install python3 python3-pip python3-apt
-
-    pip3_upgrade
-
     # Make sure the python2 docker-py package isn't installed,
     # it conflicts with the python3 package
     pip2_uninstall docker-py
+
+    apt_install python3 python3-pip python3-apt
+
+    pip3_upgrade
 
     pip3_install ansible docker
 
@@ -291,5 +314,7 @@ main() {
         exec ansible-pull -U "$REPO_URL" --purge "$PLAYBOOK_CHOICE" \
             --ask-become-pass --vault-id=@prompt -i /tmp/inventory.ini -c local
 }
+
+# endregion
 
 main "$@"
