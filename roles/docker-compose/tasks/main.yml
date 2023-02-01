@@ -1,13 +1,11 @@
-- name: Get latest download url
-  shell:
-    cmd: curl -sL https://api.github.com/repos/docker/compose/releases/latest | jq -r '.assets[] | select(.name|endswith("Linux-x86_64")).browser_download_url'
-    warn: no
-  register: download_url
-  changed_when: false
+- become: true
+  block:
 
-- name: Download and install
-  become: true
-  get_url:
-    url: "{{ download_url.stdout }}"
-    dest: /usr/local/bin/docker-compose
-    mode: 0755
+    - name: Create Docker plugins directory
+      file: path=/usr/local/lib/docker/cli-plugins state=directory
+
+    - name: Install Docker Compose
+      get_url:
+        url: https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64
+        dest: /usr/local/lib/docker/cli-plugins/docker-compose
+        mode: 0755
