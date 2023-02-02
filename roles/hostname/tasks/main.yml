@@ -1,4 +1,5 @@
 - name: Update
   become: true
+  when: new_hostnames | length > 0
   hostname:
-    name: "{{ new_hostname }}"
+    name: "{{ new_hostnames[0] }}"

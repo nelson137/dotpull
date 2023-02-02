@@ -1,11 +1,7 @@
 127.0.0.1 localhost
 ::1 localhost ip6-localhost ip6-loopback
 
-{% if new_hostname_alias %}
-127.0.0.1 {{ new_hostname }} {{ new_hostname_alias }}
-{% else %}
-127.0.0.1 {{ new_hostname }}
-{% endif %}
+127.0.0.1 {{ new_hostnames | join(' ') }}
 
 # The following lines are desirable for IPv6 capable hosts
 ::1 ip6-localhost ip6-loopback

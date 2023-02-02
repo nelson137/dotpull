@@ -1,7 +1,8 @@
 ---
 - hosts: self
   vars:
-    new_hostname: cantou
+    new_hostnames:
+      - cantou
 
   roles:
     - hostname
