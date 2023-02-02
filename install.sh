@@ -312,7 +312,8 @@ main() {
 
     get_os_info
 
-    install_packages curl git gnupg jq
+    install_packages curl git jq
+    install_packages gnupg2
 
     get_playbook_list
 
