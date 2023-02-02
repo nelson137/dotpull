@@ -26,6 +26,26 @@ RESET="$(tput sgr0)"
 CHECK_MARK="${BOLD}${GREEN}✓${RESET}"
 
 ##################################################
+# TRAPS
+##################################################
+
+# region traps
+
+declare -A _TRAP_HANDLERS
+
+_handle_trap() {
+    for handler in "${!_TRAP_HANDLERS[@]}"; do "$handler"; done
+    exit 1
+}
+
+trap _handle_trap HUP INT QUIT ABRT KILL PIPE TERM
+
+_trap_set() { _TRAP_HANDLERS["$1"]=''; }
+_trap_del() { unset _TRAP_HANDLERS["$1"]; }
+
+# endregion
+
+##################################################
 # SPINNER
 ##################################################
 
@@ -34,12 +54,15 @@ CHECK_MARK="${BOLD}${GREEN}✓${RESET}"
 SPINNER='|/-\'
 SPINNER_PID=
 
-# Make sure spinner doesn't get left running
-trap '_quiet_kill "$SPINNER_PID"' EXIT HUP ABRT
-
 _quiet_kill() {
+    [ $# -eq 0 ] && return
     kill -9 "$@" &>/dev/null || true
     wait "$@" &>/dev/null || true
+}
+
+_cleanup_spinner() {
+    _quiet_kill "$SPINNER_PID"
+    tput rc
 }
 
 start_spinner() {
@@ -58,12 +81,13 @@ start_spinner() {
     done &
 
     SPINNER_PID="$!"
+    _trap_set _cleanup_spinner
 }
 
 stop_spinner() {
-    _quiet_kill "$SPINNER_PID"
+    _trap_del _cleanup_spinner
+    _cleanup_spinner
     SPINNER_PID=
-    tput rc
     printf '\e[0K%s\n' "$*"
 }
 
@@ -79,11 +103,15 @@ USER='nelson137'
 REPO='dotpull'
 API_URL="https://api.github.com/repos/$USER/$REPO"
 
+_GH_API_HEADER=
+
+_cleanup_gh_api_header() { rm -f "$_GH_API_HEADER"; }
+
 github_api() {
-    local header response
-    header="$(mktemp /tmp/dotpull-github-api-header-XXXXXX)"
-    trap "rm -f '$header'" EXIT
-    response="$(curl -sSLD "$header" "${API_URL}${1}")"
+    local response
+    _GH_API_HEADER="$(mktemp /tmp/dotpull-github-api-header-XXXXXX.json)"
+    _trap_set _cleanup_gh_api_header
+    response="$(curl -sSLD "$_GH_API_HEADER" "${API_URL}${1}")"
     if echo "$response" | grep -q 'API rate limit exceeded'; then
         awk -v IGNORECASE=1 '
             /^X-Ratelimit-Reset:/{
@@ -91,11 +119,12 @@ github_api() {
                     strftime("%Y-%m-%d %I:%M:%S %P", $2)
                 exit 1
             }
-        ' "$header" >&2
+        ' "$_GH_API_HEADER" >&2
         exit 1
     fi
-    rm -f "$header"
-    trap EXIT # clear trap
+    _cleanup_gh_api_header
+    _GH_API_HEADER=
+    _trap_del _cleanup_gh_api_header
     echo "$response"
 }
 
@@ -312,6 +341,8 @@ usage() {
     exit "${1:-0}"
 }
 
+_cleanup_inventory_file() { rm -f "$TEMP_INVENTORY_FILE"; }
+
 main() {
     while [ $# -gt 0 ]; do
         case "$1" in
@@ -359,13 +390,13 @@ main() {
     printf "${RESET}\n"
 
     curl -sSL "$INVENTORY_URL" -o "$TEMP_INVENTORY_FILE"
-    trap "rm -f '$TEMP_INVENTORY_FILE'" EXIT INT QUIT TERM
+    _trap_set _cleanup_inventory_file
 
     ANSIBLE_PYTHON_INTERPRETER="$(which python3)" \
     ANSIBLE_NOCOWS=true \
     ANSIBLE_NOCOLOR=false \
     ANSIBLE_RETRY_FILES_ENABLED=false \
-        exec ansible-pull -U "$REPO_URL" --purge "$PLAYBOOK_CHOICE" \
+        ansible-pull -U "$REPO_URL" --purge "$PLAYBOOK_CHOICE" \
             --ask-become-pass --vault-id=@prompt -i "$TEMP_INVENTORY_FILE" \
             -c local
 }
