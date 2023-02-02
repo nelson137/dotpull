@@ -312,8 +312,8 @@ main() {
 
     get_os_info
 
+    # Install script dependencies
     install_packages curl git jq
-    install_packages gnupg2
 
     get_playbook_list
 
@@ -330,10 +330,13 @@ main() {
     # it conflicts with the python3 package
     pip2_uninstall docker-py
 
+    # Install ansible dependencies
+    install_packages gnupg2
     case "$OS_ID_LIKE" in
         *debian*) apt_install python3 python3-pip python3-apt ;;
     esac
 
+    # Install ansible & its python dependencies
     pip3_upgrade
     pip3_install ansible docker
 
