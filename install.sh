@@ -8,6 +8,9 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
+# Ansible is installed in /usr/local/bin so make sure that it is discoverable
+PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin
+
 PLAYBOOKS=()
 PLAYBOOK_CHOICE=
 REPO='nelson137/dotpull'
