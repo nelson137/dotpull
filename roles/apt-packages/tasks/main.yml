@@ -1,46 +1,44 @@
-- name: Upgrade
-  become: true
-  apt: upgrade=dist
+- become: true
+  block:
 
-- name: Add extra PPAs
-  become: true
-  apt_repository:
-    repo: "ppa:{{ item }}"
-  loop: "{{ extra_ppas | default([]) }}"
+    - name: Upgrade
+      apt: upgrade=dist
 
-- name: Install packages
-  become: true
-  apt:
-    state: latest
-    name:
-      - apt-transport-https
-      - autoconf
-      - automake
-      - boxes
-      - build-essential
-      - ca-certificates
-      - cmake
-      - git
-      - golang-go
-      - jq
-      - lolcat
-      - nmap
-      - software-properties-common
-      - tar
-      - texlive
-      - texlive-latex-extra
-      - traceroute
-      - unzip
-      - vim
-      - zip
-      - zsh
+    - name: Add extra PPAs
+      apt_repository:
+        repo: "ppa:{{ item }}"
+      loop: "{{ extra_ppas | default([]) }}"
 
-- name: Install extra packages
-  become: true
-  apt:
-    state: latest
-    name: "{{ extra_pkgs | default([]) }}"
+    - name: Install packages
+      apt:
+        state: latest
+        name:
+          - apt-transport-https
+          - autoconf
+          - automake
+          - boxes
+          - build-essential
+          - ca-certificates
+          - cmake
+          - git
+          - golang-go
+          - jq
+          - lolcat
+          - nmap
+          - software-properties-common
+          - tar
+          - texlive
+          - texlive-latex-extra
+          - traceroute
+          - unzip
+          - vim
+          - zip
+          - zsh
 
-- name: Remove unused dependencies
-  become: true
-  apt: autoremove=yes
+    - name: Install extra packages
+      apt:
+        state: latest
+        name: "{{ extra_pkgs | default([]) }}"
+
+    - name: Remove unused dependencies
+      apt: autoremove=yes
