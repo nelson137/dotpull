@@ -1,0 +1,29 @@
+- become: true
+  block:
+
+    - name: Install (Debian)
+      when: ansible_os_family == "Debian"
+      apt: name=nginx state=latest
+
+    - when: ansible_os_family == "RedHat"
+      block:
+
+        - name: Install (Amazon)
+          when: ansible_distribution == "Amazon"
+          command:
+            cmd: amazon-linux-extras install -y nginx1=latest
+            creates: /usr/sbin/nginx
+
+        - name: Install (RedHat)
+          when: ansible_distribution != "Amazon"
+          yum: name=nginx state=latest
+
+    - name: Install config
+      copy:
+        src: nginx.conf
+        dest: /etc/nginx/nginx.conf
+        checksum: 68e3f2711ad342e0eab8fd6a0f53c8c08bc09111
+      notify: reload nginx
+
+    - name: Enable service
+      systemd: name=nginx enabled=true state=started
