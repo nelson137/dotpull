@@ -45,6 +45,7 @@ _quiet_kill() {
 start_spinner() {
     [ -n "$SPINNER_PID" ] && return
 
+    local i
     while true; do
         for (( i=0; i<${#SPINNER}; i++ )); do
             tput sc
@@ -154,6 +155,7 @@ get_os_info() {
 get_playbook_list() {
     info github 'Getting list of playbooks from HEAD of master/origin ... '
     start_spinner
+    local name
     while read name; do
         PLAYBOOKS+=( "$name" )
     done < <(_get_playbooks_from_head)
@@ -171,7 +173,7 @@ validate_playbook() {
 }
 
 select_playbook() {
-    local selection
+    local i selection
     local -a books=( "$@" )
 
     while true; do
@@ -213,6 +215,7 @@ apt_install() {
     fi
     stop_spinner "$CHECK_MARK"
 
+    local pkg
     for pkg in "$@"; do
         info apt "Checking for package $pkg ... "
         start_spinner
@@ -231,6 +234,7 @@ apt_install() {
 }
 
 yum_install() {
+    local pkg
     for pkg in "$@"; do
         info yum "Checking for package $pkg ... "
         start_spinner
@@ -251,6 +255,7 @@ yum_install() {
 _pip2() { python2 -m pip "$@" &>/dev/null; }
 
 pip2_uninstall() {
+    local pkg
     for pkg in "$@"; do
         if _pip2 show "$pkg"; then
             info pip2 "Uninstalling $pkg ... "
@@ -275,6 +280,7 @@ pip3_upgrade() {
 }
 
 pip3_install() {
+    local pkg
     for pkg in "$@"; do
         info pip3 "Checking for package $pkg ... "
         start_spinner
