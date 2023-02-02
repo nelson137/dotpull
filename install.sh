@@ -16,6 +16,7 @@ PLAYBOOK_CHOICE=
 REPO='nelson137/dotpull'
 REPO_URL="https://github.com/$REPO"
 INVENTORY_URL="https://raw.githubusercontent.com/$REPO/master/inventory.ini"
+TEMP_INVENTORY_FILE='/tmp/inventory.ini'
 
 BOLD="$(tput bold)"
 GREEN="$(tput setaf 2)"
@@ -350,14 +351,16 @@ main() {
     echo "  ▐▙▄$(printf "▄%.0s" $(seq ${#title}))▄▟▌"
     printf "${RESET}\n"
 
-    curl -sSL "$INVENTORY_URL" -o /tmp/inventory.ini
+    curl -sSL "$INVENTORY_URL" -o "$TEMP_INVENTORY_FILE"
+    trap "rm -f '$TEMP_INVENTORY_FILE'" EXIT INT QUIT TERM
 
     ANSIBLE_PYTHON_INTERPRETER="$(which python3)" \
     ANSIBLE_NOCOWS=true \
     ANSIBLE_NOCOLOR=false \
     ANSIBLE_RETRY_FILES_ENABLED=false \
         exec ansible-pull -U "$REPO_URL" --purge "$PLAYBOOK_CHOICE" \
-            --ask-become-pass --vault-id=@prompt -i /tmp/inventory.ini -c local
+            --ask-become-pass --vault-id=@prompt -i "$TEMP_INVENTORY_FILE" \
+            -c local
 }
 
 # endregion
