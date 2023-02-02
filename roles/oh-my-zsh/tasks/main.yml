@@ -2,8 +2,7 @@
   apt: name=zsh state=latest
 
 - name: Check if already installed
-  stat:
-    path: "{{ ansible_user_dir }}/.oh-my-zsh"
+  stat: path="{{ ansible_user_dir }}/.oh-my-zsh"
   register: oh_my_zsh
 
 - name: Oh My Zsh
@@ -20,11 +19,8 @@
       command:
         cmd: /tmp/install-ohmyzsh --unattended
         creates: "{{ ansible_user_dir }}/.oh-my-zsh"
-      notify:
-        - remove install script
+      notify: remove install script
 
 - name: Change user shell to zsh
   become: true
-  user:
-    name: "{{ ansible_user }}"
-    shell: /usr/bin/zsh
+  user: name="{{ ansible_user }}" shell=/usr/bin/zsh

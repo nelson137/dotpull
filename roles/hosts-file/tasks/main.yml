@@ -1,13 +1,10 @@
 - name: Copy template
   become: true
-  template:
-    src: hosts.j2
-    dest: /etc/hosts
+  template: src=hosts.j2 dest=/etc/hosts
 
 - name: Detect cloud-init
+  stat: path=/etc/cloud/cloud.cfg get_checksum=false
   register: cloud_cfg
-  stat:
-    path: /etc/cloud/cloud.cfg
 
 - name: Prevent cloud-init from modifying hostname
   become: true

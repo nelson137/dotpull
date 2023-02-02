@@ -63,5 +63,4 @@
 - name: Install
   become: true
   make: chdir=/tmp/i3-gaps/build target=install
-  notify:
-    - remove i3-gaps repo
+  notify: remove i3-gaps repo

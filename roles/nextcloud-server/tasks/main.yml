@@ -19,8 +19,7 @@
       - php-imagick
 
 - name: Check if already installed
-  stat:
-    path: /var/www/nextcloud
+  stat: path=/var/www/nextcloud
   register: nextcloud_dir
 
 - name: Downloads
@@ -47,13 +46,11 @@
 
     - name: Import Nextcloud's PGP key
       command: gpg --import /tmp/nextcloud.asc
-      notify:
-        - remove nextcloud pgp key
+      notify: remove nextcloud pgp key
 
     - name: Verify archive's PGP signature
       command: gpg --verify /tmp/nextcloud.tar.bz2.asc /tmp/nextcloud.tar.bz2
-      notify:
-        - remove nextcloud server archive pgp signature
+      notify: remove nextcloud server archive pgp signature
 
     - name: Extract archive
       become: true
@@ -64,8 +61,7 @@
         creates: /var/www/nextcloud
         owner: www-data
         group: www-data
-      notify:
-        - remove nextcloud server archive
+      notify: remove nextcloud server archive
 
 - name: Enable apache modules
   become: true
@@ -78,8 +74,7 @@
     - mime
     - rewrite
     - ssl
-  notify:
-    - restart apache2
+  notify: restart apache2
 
 - name: Copy site config
   become: true
@@ -90,14 +85,11 @@
   command:
     cmd: a2ensite nextcloud
     creates: /etc/apache2/sites-enabled/nextcloud.conf
-  notify:
-    - restart apache2
+  notify: restart apache2
 
 - name: Copy MariaDB config
   become: true
-  copy:
-    src: 60-nextcloud.cnf
-    dest: /etc/mysql/mariadb.conf.d/60-nextcloud.cnf
+  copy: src=60-nextcloud.cnf dest=/etc/mysql/mariadb.conf.d/60-nextcloud.cnf
 
 - name: Check if MySQL database already setup
   become: true
@@ -139,8 +131,7 @@
     path: /var/www/nextcloud/config/config.php
     regexp: "  'overwrite\\.cli\\.url' => 'http://localhost',"
     line: "  'overwrite.cli.url' => 'https://cloud.{{ domain }}',"
-  notify:
-    - update nextcloud htaccess
+  notify: update nextcloud htaccess
 
 - name: Add htaccess RewriteBase to config
   become: true
@@ -148,8 +139,7 @@
     path: /var/www/nextcloud/config/config.php
     insertafter: 'overwrite.cli.url'
     line: "  'htaccess.RewriteBase' => '/',"
-  notify:
-    - update nextcloud htaccess
+  notify: update nextcloud htaccess
 
 - name: Enable MySQL utf8mb4 charset in config
   become: true
@@ -171,5 +161,4 @@
     - Documents/Nextcloud flyer.pdf
     - Documents/Readme.md
     - Photos
-  notify:
-    - reindex nextcloud files
+  notify: reindex nextcloud files

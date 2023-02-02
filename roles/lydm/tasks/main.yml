@@ -19,21 +19,15 @@
         dest: "{{ ly_dir }}"
 
     - name: Clone repo submodules
-      make:
-        chdir: "{{ ly_dir }}"
-        target: github
+      make: chdir="{{ ly_dir }}" target=github
 
     - name: Compile
-      make:
-        chdir: "{{ ly_dir }}"
+      make: chdir="{{ ly_dir }}"
 
     - name: Install
       become: true
-      make:
-        chdir: "{{ ly_dir }}"
-        target: install
-      notify:
-        - remove lydm repo
+      make: chdir="{{ ly_dir }}" target=install
+      notify: remove lydm repo
 
 - name: Disable old display manager
   become: true

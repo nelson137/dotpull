@@ -23,8 +23,7 @@
     - name: Execute setup script
       become: true
       command: /tmp/setup-nodejs
-      notify:
-        - remove nodejs setup script
+      notify: remove nodejs setup script
 
     - name: Install
       become: true
