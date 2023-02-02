@@ -20,5 +20,8 @@
         cmd: amazon-linux-extras install -y docker
         creates: /usr/bin/docker
 
+    - name: Start & Enable Docker
+      systemd: name=docker state=started enabled=true
+
     - name: Add user to docker group
       user: name="{{ ansible_user }}" groups=docker
