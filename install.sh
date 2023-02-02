@@ -94,6 +94,7 @@ github_api() {
         ' "$header" >&2
         exit 1
     fi
+    rm -f "$header"
     trap EXIT # clear trap
     echo "$response"
 }
