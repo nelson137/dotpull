@@ -7,8 +7,32 @@
   roles:
     - hostname
 
-    - apt-packages
+    - role: install-packages
+      apt_packages:
+        - apt-transport-https
+        - autoconf
+        - automake
+        - boxes
+        - build-essential
+        - ca-certificates
+        - cmake
+        - git
+        - golang-go
+        - jq
+        - lolcat
+        - nmap
+        - software-properties-common
+        - tar
+        - texlive
+        - texlive-latex-extra
+        - traceroute
+        - unzip
+        - vim
+        - zip
+        - zsh
+
     - pip-packages
+
     - youtube-dl
     - nodejs
 

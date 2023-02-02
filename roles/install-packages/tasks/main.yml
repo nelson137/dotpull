@@ -1,0 +1,30 @@
+- become: true
+  block:
+
+    - when: ansible_os_family == "Debian"
+      block:
+
+        - name: Apt upgrade
+          apt: upgrade=dist
+
+        - name: Add apt PPAs
+          apt_repository: repo="ppa:{{ item }}"
+          loop: "{{ apt_ppas | default([]) }}"
+
+        - name: Install apt packages
+          apt: name="{{ apt_packages | default([]) }}" state=latest
+
+    - when: ansible_distribution == "Amazon"
+      block:
+
+        - name: Install amazon-linux-extras packages
+          command:
+            cmd: amazon-linux-extras install -y {{ item.name }}
+            creates: "{{ item.creates }}"
+          loop: "{{ amazon_linux_extras_packages | default([]) }}"
+
+    - when: ansible_distribution in ["Amazon", "RedHat"]
+      block:
+
+        - name: Install yum packages
+          yum: name="{{ yum_packages | default([]) }}" state=latest

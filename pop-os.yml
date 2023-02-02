@@ -3,10 +3,31 @@
   become: true
 
   roles:
-    - role: apt-packages
-      extra_ppas:
+    - role: install-packages
+      apt_ppas:
         - snwh/ppa
-      extra_pkgs:
+      apt_packages:
+        - apt-transport-https
+        - autoconf
+        - automake
+        - boxes
+        - build-essential
+        - ca-certificates
+        - cmake
+        - git
+        - golang-go
+        - jq
+        - lolcat
+        - nmap
         - paper-icon-theme
         - scrot
+        - software-properties-common
+        - tar
+        - texlive
+        - texlive-latex-extra
+        - traceroute
+        - unzip
+        - vim
         - vlc
+        - zip
+        - zsh
