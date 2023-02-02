@@ -135,6 +135,18 @@ info_nl() {
 
 # region core
 
+declare OS_ID_LIKE OS_NAME
+get_os_info() {
+    if [ -f /etc/os-release ]; then
+        {
+            read OS_ID_LIKE
+            read OS_NAME
+        } < <(source /etc/os-release; echo "$ID_LIKE"; echo "$NAME")
+    else
+        err 'failed to determine OS'
+    fi
+}
+
 get_playbook_list() {
     info github 'Getting list of playbooks from HEAD of master/origin ... '
     start_spinner
@@ -181,16 +193,22 @@ select_playbook() {
     echo "${books[$selection]}"
 }
 
-apt_update() {
+install_packages() {
+    case "$OS_ID_LIKE" in
+        *rhel*) yum_install "$@" ;;
+        *debian*) apt_install "$@" ;;
+        *) err "unsupported OS: $os_name"
+    esac
+}
+
+apt_install() {
     info apt 'Updating package index ... '
     start_spinner
     if ! apt update -y &>/dev/null; then
         err "apt: unable to update"
     fi
     stop_spinner "$CHECK_MARK"
-}
 
-apt_install() {
     for pkg in "$@"; do
         info apt "Checking for package $pkg ... "
         start_spinner
@@ -202,6 +220,24 @@ apt_install() {
             start_spinner
             if ! apt install -y "$pkg" &>/dev/null; then
                 err "apt: unable to install package: $pkg"
+            fi
+            stop_spinner "$CHECK_MARK"
+        fi
+    done
+}
+
+yum_install() {
+    for pkg in "$@"; do
+        info yum "Checking for package $pkg ... "
+        start_spinner
+        if rpm -q "$pkg" &>/dev/null; then
+            stop_spinner "$CHECK_MARK"
+        else
+            stop_spinner 'not installed'
+            info yum "Installing $pkg ... "
+            start_spinner
+            if ! yum install -y "$pkg" &>/dev/null; then
+                err "yum: unable to install package: $pkg"
             fi
             stop_spinner "$CHECK_MARK"
         fi
@@ -274,8 +310,9 @@ main() {
         shift
     done
 
-    apt_update
-    apt_install curl git gnupg jq
+    get_os_info
+
+    install_packages curl git gnupg jq
 
     get_playbook_list
 
@@ -292,10 +329,11 @@ main() {
     # it conflicts with the python3 package
     pip2_uninstall docker-py
 
-    apt_install python3 python3-pip python3-apt
+    case "$OS_ID_LIKE" in
+        *debian*) apt_install python3 python3-pip python3-apt ;;
+    esac
 
     pip3_upgrade
-
     pip3_install ansible docker
 
     local title="Executing playbook: $PLAYBOOK_CHOICE"
