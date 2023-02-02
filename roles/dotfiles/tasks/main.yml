@@ -1,19 +1,23 @@
-- name: Clone repo
-  git:
-    clone: yes
-    depth: 1
-    repo: https://github.com/nelson137/.dot
-    dest: "{{ ansible_user_dir }}/.dot"
+- become: true
+  become_user: "{{ user }}"
+  block:
 
-- name: Install dotfiles
-  command: "{{ ansible_user_dir }}/.dot/deploy.sh"
+    - name: Clone repo
+      git:
+        clone: yes
+        depth: 1
+        repo: https://github.com/nelson137/.dot
+        dest: "{{ ansible_user_dir }}/.dot"
 
-- name: Install Vundle
-  git:
-    clone: yes
-    depth: 1
-    repo: https://github.com/VundleVim/Vundle.vim
-    dest: "{{ ansible_user_dir }}/.vim/bundle/Vundle.vim"
+    - name: Install dotfiles
+      command: "{{ ansible_user_dir }}/.dot/deploy.sh"
 
-- name: Install vim plugins
-  command: vim +PluginInstall +qall
+    - name: Install Vundle
+      git:
+        clone: yes
+        depth: 1
+        repo: https://github.com/VundleVim/Vundle.vim
+        dest: "{{ ansible_user_dir }}/.vim/bundle/Vundle.vim"
+
+    - name: Install vim plugins
+      command: vim +PluginInstall +qall
