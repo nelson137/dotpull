@@ -1,0 +1,71 @@
+---
+- hosts: self
+  vars:
+    new_hostnames:
+      - nelsonearle.com
+      - www.nelsonearle.com
+      - cloud.nelsonearle.com
+      - www.cloud.nelsonearle.com
+      - finance.nelsonearle.com
+      - www.finance.nelsonearle.com
+  vars_prompt:
+    - name: firefly_mysql_password
+      prompt: Firefly III - MySQL Password
+      private: true
+      unsafe: true
+
+  roles:
+
+    # ==================================================
+    # System Setup
+    # ==================================================
+
+    # - hostname
+
+    # - custom-motd
+    # - custom-motd-screenfetch
+
+    # - role: install-packages
+    #   yum_packages:
+    #     - ca-certificates
+    #     - git
+    #     - jq
+    #     - nmap
+    #     - tar
+    #     - traceroute
+    #     - unzip
+    #     - vim
+    #     - zip
+    #     - zsh
+
+    - nginx
+
+    - docker
+    - docker-compose
+
+    # - dotpull-host
+
+    # - nextcloud-server
+
+    - firefly-iii
+
+    # ==================================================
+    # User Setup
+    # ==================================================
+
+    # - role: user-account
+    #   username: TODO
+    #   password: TODO
+
+    # - sudo-as-admin-successful
+    # - selected-editor
+
+    # - ssh-key
+    # - oh-my-zsh
+    # - dotfiles
+
+    # ==================================================
+    # End
+    # ==================================================
+
+    # - reboot-when-done
