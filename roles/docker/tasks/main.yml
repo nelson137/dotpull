@@ -1,15 +1,24 @@
 - become: true
   block:
 
-    - name: Add apt key
-      apt_key: url=https://download.docker.com/linux/ubuntu/gpg
+    - when: ansible_os_family == "Debian"
+      block:
 
-    - name: Add apt repository
-      apt_repository:
-        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_lsb['codename'] }} stable"
+        - name: Add apt key
+          apt_key: url=https://download.docker.com/linux/ubuntu/gpg
 
-    - name: Install
-      apt: name=docker-ce state=latest
+        - name: Add apt repository
+          apt_repository:
+            repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_lsb['codename'] }} stable"
+
+        - name: Install
+          apt: name=docker-ce state=latest
+
+    - name: Install Docker
+      when: ansible_distribution == "Amazon"
+      command:
+        cmd: amazon-linux-extras install -y docker
+        creates: /usr/bin/docker
 
     - name: Add user to docker group
       user: name="{{ ansible_user }}" groups=docker
