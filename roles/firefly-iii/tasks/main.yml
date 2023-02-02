@@ -1,0 +1,65 @@
+- become: true
+  vars:
+    firefly_dir: /opt/firefly-iii
+    firefly_docker_compose_path: '{{ firefly_dir }}/docker-compose.yml'
+    firefly_host_port: 8002
+    firefly_env_path: '{{ firefly_dir }}/.env'
+  block:
+
+    - name: Create working directory
+      file: path='{{ firefly_dir }}' state=directory
+
+    - name: Install Docker Compose file
+      template: src=docker-compose.yml.j2 dest='{{ firefly_docker_compose_path }}'
+
+    - name: Download environment file
+      get_url:
+        url: https://raw.githubusercontent.com/firefly-iii/firefly-iii/main/.env.example
+        dest: '{{ firefly_env_path }}'
+
+    - name: Configure environment file
+      lineinfile:
+        path: '{{ firefly_env_path }}'
+        regexp: '{{ item.regexp }}'
+        line: '{{ item.line }}'
+      loop:
+        - regexp: '^SITE_OWNER=.*'
+          line: 'SITE_OWNER=admin@nelsonearle.com'
+        - regexp: '^TRUSTED_PROXIES=.*'
+          line: 'TRUSTED_PROXIES=**'
+        - regexp: '^TZ=.*'
+          line: 'TZ=America/Chicago'
+        - regexp: '^DB_PASSWORD=.*'
+          line: 'DB_PASSWORD={{ firefly_mysql_password }}'
+
+    - name: List running Docker Compose projects
+      command: docker compose ls --format=json
+      register: docker_compose_ls
+      changed_when: false
+
+    - name: Start
+      when: firefly_docker_compose_path not in (docker_compose_ls.stdout | from_json | map(attribute='ConfigFiles'))
+      command:
+        cmd: docker compose up -d
+        chdir: '{{ firefly_dir }}'
+
+    - name: Copy Nginx server config (Amazon)
+      when: ansible_distribution == 'Amazon'
+      template: src=finance.conf.j2 dest=/etc/nginx/conf.d/finance.conf
+      notify: reload nginx
+
+    - when: ansible_distribution == 'Debian'
+      block:
+
+        - name: Copy Nginx server config (Debian)
+          copy:
+            src: finance.conf
+            dest: /etc/nginx/sites-available/finance.conf
+            checksum: '{{ nginx_conf_checksum }}'
+
+        - name: Enable Nginx server config (Debian)
+          file:
+            src: /etc/nginx/sites-available/finance.conf
+            dest: /etc/nginx/sites-enabled/finance.conf
+            state: link
+          notify: reload nginx
