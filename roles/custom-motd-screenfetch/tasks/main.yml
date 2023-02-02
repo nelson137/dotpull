@@ -1,4 +1,5 @@
 - name: Install screenfetch
+  become: true
   apt: name=screenfetch state=latest
 
 - name: Install custom header script
