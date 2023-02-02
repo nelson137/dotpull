@@ -1,5 +1,5 @@
 - name: Check if already installed
-  stat: path=/usr/bin/balena-etcher-electron
+  stat: path=/usr/bin/balena-etcher-electron get_checksum=false get_mime=false
   register: etcher
 
 - when: etcher.stat.exists == false

@@ -23,7 +23,7 @@
 
 - name: Check if LetsEncrypt certificate already exists
   become: true
-  stat: path="/etc/letsencrypt/live/{{ domain }}"
+  stat: path="/etc/letsencrypt/live/{{ domain }}" get_checksum=false get_mime=false
   register: le_cert
 
 - when: le_cert.stat.exists == false

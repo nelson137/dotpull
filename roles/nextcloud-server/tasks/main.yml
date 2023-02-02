@@ -19,7 +19,7 @@
       - php-imagick
 
 - name: Check if already installed
-  stat: path=/var/www/nextcloud
+  stat: path=/var/www/nextcloud get_checksum=false get_mime=false
   register: nextcloud_dir
 
 - name: Downloads
