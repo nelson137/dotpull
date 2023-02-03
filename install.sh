@@ -46,6 +46,30 @@ _trap_del() { unset _TRAP_HANDLERS["$1"]; }
 # endregion
 
 ##################################################
+# LOGGING
+##################################################
+
+# region logging
+
+err() {
+    [ -n "$SPINNER_PID" ] && stop_spinner
+    echo "error: $*" >&2
+    exit 1
+}
+
+info() {
+    local tag="$1"; shift
+    printf "$BOLD[$tag]$RESET $*"
+}
+
+info_nl() {
+    local tag="$1"; shift
+    info "$tag" "$*\n"
+}
+
+# endregion
+
+##################################################
 # SPINNER
 ##################################################
 
@@ -136,30 +160,6 @@ _get_playbooks_from_head() {
         def is_yaml: endswith(".yml") or endswith(".yaml");
         .tree | map(.path)[] | select(is_yaml)
     '
-}
-
-# endregion
-
-##################################################
-# LOGGING
-##################################################
-
-# region logging
-
-err() {
-    [ -n "$SPINNER_PID" ] && stop_spinner
-    echo "error: $*" >&2
-    exit 1
-}
-
-info() {
-    local tag="$1"; shift
-    printf "$BOLD[$tag]$RESET $*"
-}
-
-info_nl() {
-    local tag="$1"; shift
-    info "$tag" "$*\n"
 }
 
 # endregion
