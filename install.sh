@@ -81,7 +81,7 @@ API_URL="https://api.github.com/repos/$USER/$REPO"
 
 github_api() {
     local header response
-    header="$(mktemp /tmp/github-api-header-XXXXXX.json)"
+    header="$(mktemp /tmp/dotpull-github-api-header-XXXXXX)"
     trap "rm -f '$header'" EXIT
     response="$(curl -sSLD "$header" "${API_URL}${1}")"
     if echo "$response" | grep -q 'API rate limit exceeded'; then
