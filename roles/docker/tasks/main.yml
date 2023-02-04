@@ -24,4 +24,4 @@
       systemd: name=docker state=started enabled=true
 
     - name: Add user to docker group
-      user: name="{{ ansible_user }}" groups=docker
+      user: name="{{ ansible_user_id }}" groups=docker
