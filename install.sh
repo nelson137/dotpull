@@ -396,9 +396,8 @@ main() {
     ANSIBLE_NOCOWS=true \
     ANSIBLE_NOCOLOR=false \
     ANSIBLE_RETRY_FILES_ENABLED=false \
-        ansible-pull -U "$REPO_URL" --purge "$PLAYBOOK_CHOICE" \
-            --ask-become-pass --vault-id=@prompt -i "$TEMP_INVENTORY_FILE" \
-            -c local
+    ansible-pull -U "$REPO_URL" --purge "$PLAYBOOK_CHOICE" \
+        --vault-id=@prompt -i "$TEMP_INVENTORY_FILE" -c local
 }
 
 # endregion
