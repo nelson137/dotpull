@@ -17,6 +17,9 @@
         url: https://raw.githubusercontent.com/firefly-iii/firefly-iii/main/.env.example
         dest: '{{ firefly_env_path }}'
 
+    - name: Generate app key
+      set_fact: firefly_app_key='{{ lookup("random_string", length=32, special=False) }}'
+
     - name: Configure environment file
       lineinfile:
         path: '{{ firefly_env_path }}'
@@ -25,6 +28,8 @@
       loop:
         - regexp: '^SITE_OWNER=.*'
           line: 'SITE_OWNER=admin@nelsonearle.com'
+        - regexp: '^APP_KEY=.*'
+          line: 'APP_KEY={{ firefly_app_key }}'
         - regexp: '^TRUSTED_PROXIES=.*'
           line: 'TRUSTED_PROXIES=**'
         - regexp: '^TZ=.*'
