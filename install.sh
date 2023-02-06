@@ -399,6 +399,7 @@ main() {
     ANSIBLE_NOCOWS=true \
     ANSIBLE_NOCOLOR=false \
     ANSIBLE_RETRY_FILES_ENABLED=false \
+    ANSIBLE_DEPRECATION_WARNINGS=false \
     ansible-pull -U "$REPO_URL" --purge "$PLAYBOOK_CHOICE" \
         --vault-id=@prompt -i "$TEMP_INVENTORY_FILE" -c local
 }
