@@ -1,19 +1,19 @@
 <VirtualHost *:80>
-	ServerName cloud.{{ domain }}
-	ServerAlias www.cloud.{{ domain }}
+	ServerName cloud.{{ domain_name }}
+	ServerAlias www.cloud.{{ domain_name }}
 	RewriteEngine on
-	RewriteCond %{HTTP_HOST} ^(www\.)?cloud\.{{ domain | replace('.', '\.') }} [NC]
-	RewriteRule ^.*$ https://cloud.{{ domain }}%{REQUEST_URI} [L,NE,R=301]
+	RewriteCond %{HTTP_HOST} ^(www\.)?cloud\.{{ domain_name | replace('.', '\.') }} [NC]
+	RewriteRule ^.*$ https://cloud.{{ domain_name }}%{REQUEST_URI} [L,NE,R=301]
 </VirtualHost>
 
 SSLStaplingCache "shmcb:/run/oscp(150000)"
 <VirtualHost *:443>
-	ServerName cloud.{{ domain }}
-	ServerAlias www.cloud.{{ domain }}
+	ServerName cloud.{{ domain_name }}
+	ServerAlias www.cloud.{{ domain_name }}
 
 	RewriteEngine on
-	RewriteCond %{HTTP_HOST} ^www\.cloud\.{{ domain | replace('.', '\.') }} [NC]
-	RewriteRule ^.*$ https://cloud.{{ domain }}%{REQUEST_URI} [L,NE,R=301]
+	RewriteCond %{HTTP_HOST} ^www\.cloud\.{{ domain_name | replace('.', '\.') }} [NC]
+	RewriteRule ^.*$ https://cloud.{{ domain_name }}%{REQUEST_URI} [L,NE,R=301]
 
 	SSLEngine on
 	SSLUseStapling on

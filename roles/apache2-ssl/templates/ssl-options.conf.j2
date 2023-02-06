@@ -9,8 +9,8 @@ SSLCipherSuite ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-E
 
 SSLOpenSSLConfCmd DHParameters /etc/ssl/certs/dhparam.pem
 
-SSLCertificateFile /etc/letsencrypt/live/{{ domain }}/cert.pem
-SSLCertificateKeyFile /etc/letsencrypt/live/{{ domain }}/privkey.pem
-SSLCertificateChainFile /etc/letsencrypt/live/{{ domain }}/chain.pem
+SSLCertificateFile /etc/letsencrypt/live/{{ domain_name }}/cert.pem
+SSLCertificateKeyFile /etc/letsencrypt/live/{{ domain_name }}/privkey.pem
+SSLCertificateChainFile /etc/letsencrypt/live/{{ domain_name }}/chain.pem
 
 # vim: syntax=apache ts=4 sw=4 sts=4 sr noet

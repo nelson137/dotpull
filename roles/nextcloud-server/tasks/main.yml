@@ -123,14 +123,14 @@
   lineinfile:
     path: /var/www/nextcloud/config/config.php
     insertafter: "0 => 'localhost',"
-    line: "    1 => 'cloud.{{ domain }}',"
+    line: "    1 => 'cloud.{{ domain_name }}',"
 
 - name: Fix url rewrite in config
   become: true
   lineinfile:
     path: /var/www/nextcloud/config/config.php
     regexp: "  'overwrite\\.cli\\.url' => 'http://localhost',"
-    line: "  'overwrite.cli.url' => 'https://cloud.{{ domain }}',"
+    line: "  'overwrite.cli.url' => 'https://cloud.{{ domain_name }}',"
   notify: update nextcloud htaccess
 
 - name: Add htaccess RewriteBase to config

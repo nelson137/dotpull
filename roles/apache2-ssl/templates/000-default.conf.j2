@@ -1,21 +1,21 @@
 Header always set Strict-Transport-Security "max-age=31536000; includeSubdomains"
 
 <VirtualHost *:80>
-	ServerName {{ domain }}
-	ServerAlias www.{{ domain }}
+	ServerName {{ domain_name }}
+	ServerAlias www.{{ domain_name }}
 	RewriteEngine on
-	RewriteCond %{HTTP_HOST} ^(www\.)?{{ domain | replace('.', '\.') }} [NC]
-	RewriteRule ^.*$ https://{{ domain }}%{REQUEST_URI} [L,NE,R=301]
+	RewriteCond %{HTTP_HOST} ^(www\.)?{{ domain_name | replace('.', '\.') }} [NC]
+	RewriteRule ^.*$ https://{{ domain_name }}%{REQUEST_URI} [L,NE,R=301]
 </VirtualHost>
 
 SSLStaplingCache "shmcb:/run/oscp(150000)"
 <VirtualHost *:443>
-	ServerName {{ domain }}
-	ServerAlias www.{{ domain }}
+	ServerName {{ domain_name }}
+	ServerAlias www.{{ domain_name }}
 
 	RewriteEngine on
-	RewriteCond %{HTTP_HOST} ^www\.{{ domain | replace('.', '\.') }} [NC]
-	RewriteRule ^.*$ https://{{ domain }}%{REQUEST_URI} [L,NE,R=301]
+	RewriteCond %{HTTP_HOST} ^www\.{{ domain_name | replace('.', '\.') }} [NC]
+	RewriteRule ^.*$ https://{{ domain_name }}%{REQUEST_URI} [L,NE,R=301]
 
 	Header always set X-XSS-Protection "1; mode=block"
 	Header always set X-Content-Type-Options "nosniff"

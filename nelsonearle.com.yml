@@ -1,7 +1,8 @@
 ---
 - hosts: self
   vars:
-    new_hostnames:
+    domain_name: nelsonearle.com
+    all_domain_names:
       - nelsonearle.com
       - www.nelsonearle.com
       - cloud.nelsonearle.com

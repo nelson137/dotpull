@@ -23,7 +23,7 @@
 
 - name: Check if LetsEncrypt certificate already exists
   become: true
-  stat: path="/etc/letsencrypt/live/{{ domain }}" get_checksum=false get_mime=false
+  stat: path='/etc/letsencrypt/live/{{ domain_name }}' get_checksum=false get_mime=false
   register: le_cert
 
 - when: le_cert.stat.exists == false
@@ -37,18 +37,18 @@
 
     - name: Get test LetsEncrypt certificate
       command:
-        cmd: /docker/letsencrypt/le-cmd "{{ domain }}" cert-get --staging
-        creates: "/etc/letsencrypt/live/{{ domain }}"
+        cmd: /docker/letsencrypt/le-cmd '{{ domain_name }}' cert-get --staging
+        creates: "/etc/letsencrypt/live/{{ domain_name }}"
 
     - name: Revoke and delete test LetsEncrypt certificate
       command:
-        cmd: /docker/letsencrypt/le-cmd "{{ domain }}" cert-revoke --staging
-        removes: "/etc/letsencrypt/live/{{ domain }}"
+        cmd: /docker/letsencrypt/le-cmd '{{ domain_name }}' cert-revoke --staging
+        removes: '/etc/letsencrypt/live/{{ domain_name }}'
 
     - name: Get LetsEncrypt certificate
       command:
-        cmd: /docker/letsencrypt/le-cmd "{{ domain }}" cert-get
-        creates: "/etc/letsencrypt/live/{{ domain }}"
+        cmd: /docker/letsencrypt/le-cmd '{{ domain_name }}' cert-get
+        creates: '/etc/letsencrypt/live/{{ domain_name }}'
 
     - name: Stop and remove LetsEncrypt challenge container
       docker_compose: project_src=/docker/letsencrypt state=absent
@@ -63,7 +63,7 @@
     user: root
     minute: '0'
     hour: '23'
-    job: /docker/letsencrypt/le-cmd "{{ domain }}" cert-renew
+    job: /docker/letsencrypt/le-cmd '{{ domain_name }}' cert-renew
 
 - name: Disable apache ServerToken
   become: true

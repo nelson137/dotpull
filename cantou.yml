@@ -1,7 +1,8 @@
 ---
 - hosts: self
   vars:
-    new_hostnames:
+    domain_name: cantou
+    all_domain_names:
       - cantou
 
   roles:
