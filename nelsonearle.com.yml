@@ -52,11 +52,10 @@
     #     - zsh
 
     - nginx
+    - nginx-dotpull-host
 
     - docker
     - docker-compose
-
-    # - dotpull-host
 
     # - nextcloud-server
 

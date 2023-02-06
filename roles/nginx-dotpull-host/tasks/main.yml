@@ -1,0 +1,5 @@
+- name: Copy script
+  become: true
+  copy:
+    src: dotpull
+    dest: /usr/share/nginx/html/dotpull
