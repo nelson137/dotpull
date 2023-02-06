@@ -220,6 +220,7 @@ select_playbook() {
 
         _trap_set _cleanup_color_prompt
         read -rp "${BOLD}Choice (q to quit) ${YELLOW}> " selection </dev/tty
+        #           Fix stdin, see note at bottom for more info => ~~~~~~~~~
         printf "$RESET" >&2
         _trap_del _cleanup_color_prompt
 
@@ -401,7 +402,16 @@ main() {
     ANSIBLE_RETRY_FILES_ENABLED=false \
     ANSIBLE_DEPRECATION_WARNINGS=false \
     ansible-pull -U "$REPO_URL" --purge "$PLAYBOOK_CHOICE" \
-        --vault-id=@prompt -i "$TEMP_INVENTORY_FILE" -c local
+        --vault-id=@prompt -i "$TEMP_INVENTORY_FILE" -c local \
+        </dev/tty
+    #   ~~~~~~~~~
+    #   ^ Fix stdin for ansible
+    #
+    # NOTE: This script is intended to be run as `curl ... | sudo bash -` which
+    # causes problems when we want to read from stdin in this script (e.g. with
+    # `read`) or in ansible (e.g. with `vars_promp`). This is fixed by
+    # redirecting the tty (`/dev/tty`) of this process to stdin of the process
+    # that needs it.
 }
 
 # endregion
