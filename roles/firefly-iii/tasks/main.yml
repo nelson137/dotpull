@@ -12,30 +12,10 @@
     - name: Install Docker Compose file
       template: src=docker-compose.yml.j2 dest='{{ firefly_docker_compose_path }}'
 
-    - name: Download environment file
-      get_url:
-        url: https://raw.githubusercontent.com/firefly-iii/firefly-iii/main/.env.example
-        dest: '{{ firefly_env_path }}'
-
-    - name: Generate app key
-      set_fact: firefly_app_key='{{ lookup("random_string", length=32, special=False) }}'
-
-    - name: Configure environment file
-      lineinfile:
-        path: '{{ firefly_env_path }}'
-        regexp: '{{ item.regexp }}'
-        line: '{{ item.line }}'
-      loop:
-        - regexp: '^SITE_OWNER=.*'
-          line: 'SITE_OWNER={{ firefly_owner_email }}'
-        - regexp: '^APP_KEY=.*'
-          line: 'APP_KEY={{ firefly_app_key }}'
-        - regexp: '^TRUSTED_PROXIES=.*'
-          line: 'TRUSTED_PROXIES=**'
-        - regexp: '^TZ=.*'
-          line: 'TZ=America/Chicago'
-        - regexp: '^DB_PASSWORD=.*'
-          line: 'DB_PASSWORD={{ firefly_mysql_password }}'
+    - name: Install environment file
+      template: src=env.j2 dest='{{ firefly_env_path }}'
+      vars:
+        firefly_app_key: '{{ lookup("random_string", length=32, special=False) }}'
 
     - name: List running Docker Compose projects
       command: docker compose ls --format=json
