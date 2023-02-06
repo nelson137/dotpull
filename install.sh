@@ -214,10 +214,7 @@ select_playbook() {
         done
         printf '\n' >&2
 
-        printf "${BOLD}Choice (q to quit) ${YELLOW}> " >&2
-        # Can't use `read -p` because stderr was redirected to /dev/null
-        # Redirect in /dev/tty so this script works even when piped into bash
-        read -r selection </dev/tty
+        read -rp "${BOLD}Choice (q to quit) ${YELLOW}> " selection </dev/tty
         printf "$RESET" >&2
 
         [[ $selection == q ]] && return 1
@@ -226,7 +223,7 @@ select_playbook() {
         printf '\n' >&2
     done
 
-    echo "${books[$selection]}"
+    PLAYBOOK_CHOICE="${books[$selection]}"
 }
 
 install_packages() {
@@ -364,7 +361,7 @@ main() {
         validate_playbook "$PLAYBOOK_CHOICE" "${PLAYBOOKS[@]}"
     else
         printf '\n'
-        PLAYBOOK_CHOICE="$(select_playbook "${PLAYBOOKS[@]}")" || return 0
+        select_playbook "${PLAYBOOKS[@]}" || return 0
         printf '\n'
     fi
 
