@@ -89,6 +89,8 @@ _cleanup_spinner() {
     tput rc
 }
 
+_trap_cleanup_spinner() { _cleanup_spinner; echo; }
+
 start_spinner() {
     [ -n "$SPINNER_PID" ] && return
 
@@ -105,11 +107,11 @@ start_spinner() {
     done &
 
     SPINNER_PID="$!"
-    _trap_set _cleanup_spinner
+    _trap_set _trap_cleanup_spinner
 }
 
 stop_spinner() {
-    _trap_del _cleanup_spinner
+    _trap_del _trap_cleanup_spinner
     _cleanup_spinner
     SPINNER_PID=
     printf '\e[0K%s\n' "$*"
