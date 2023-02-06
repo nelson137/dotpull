@@ -10,4 +10,6 @@
 
 - name: Install
   become: true
-  apt: name=wine-stable-amd64 state=latest
+  apt: name='wine-stable-{{ bits }}' state=latest
+  vars:
+    bits: '{{ "amd64" if ansible_userspace_bits == "64" else "i386" }}'

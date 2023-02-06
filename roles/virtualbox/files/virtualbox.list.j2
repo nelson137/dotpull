@@ -1,1 +1,1 @@
-deb [arch=amd64] https://download.virtualbox.org/virtualbox/debian {{ ansible_lsb['codename'] }} contrib
+deb [arch={{ ansible_architecture }}] https://download.virtualbox.org/virtualbox/debian {{ ansible_lsb['codename'] }} contrib
