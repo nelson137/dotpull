@@ -202,6 +202,8 @@ validate_playbook() {
     err "playbook must be one of: ${playbooks[@]}"
 }
 
+_cleanup_color_prompt() { echo "$RESET"; }
+
 select_playbook() {
     local i selection
     local -a books=( "$@" )
@@ -214,8 +216,10 @@ select_playbook() {
         done
         printf '\n' >&2
 
+        _trap_set _cleanup_color_prompt
         read -rp "${BOLD}Choice (q to quit) ${YELLOW}> " selection </dev/tty
         printf "$RESET" >&2
+        _trap_del _cleanup_color_prompt
 
         [[ $selection == q ]] && return 1
         (( 0 <= selection && selection < $# )) && break
