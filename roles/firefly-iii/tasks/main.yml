@@ -27,7 +27,7 @@
         line: '{{ item.line }}'
       loop:
         - regexp: '^SITE_OWNER=.*'
-          line: 'SITE_OWNER=admin@nelsonearle.com'
+          line: 'SITE_OWNER={{ firefly_owner_email }}'
         - regexp: '^APP_KEY=.*'
           line: 'APP_KEY={{ firefly_app_key }}'
         - regexp: '^TRUSTED_PROXIES=.*'

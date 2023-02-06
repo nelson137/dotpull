@@ -23,7 +23,7 @@ server {
     #
     # include snippets/snakeoil.conf;
 
-    server_name finance.nelsonearle.com www.finance.nelsonearle.com;
+    server_name {{ firefly_domain_names | join(' ') }};
 
     location / {
         proxy_pass http://127.0.0.1:{{ firefly_host_port }};

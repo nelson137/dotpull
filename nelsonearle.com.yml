@@ -9,6 +9,10 @@
       - www.cloud.nelsonearle.com
       - finance.nelsonearle.com
       - www.finance.nelsonearle.com
+    firefly_domain_names:
+      - finance.nelsonearle.com
+      - www.finance.nelsonearle.com
+    firefly_owner_email: admin@nelsonearle.com
   vars_prompt:
     - name: firefly_mysql_password
       prompt: Firefly III - MySQL Password
