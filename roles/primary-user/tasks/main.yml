@@ -1,0 +1,12 @@
+- name: Create account
+  user:
+    name: '{{ primary_user }}'
+    password: '{{ primary_user_password | password_hash }}'
+    create_home: true
+    groups:
+      - wheel
+      - adm
+      - systemd-journal
+    append: true
+    generate_ssh_key: true
+    ssh_key_type: ed25519

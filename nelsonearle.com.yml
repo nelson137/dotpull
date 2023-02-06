@@ -1,6 +1,7 @@
 ---
 - hosts: self
   vars:
+    primary_user: nelson
     domain_name: nelsonearle.com
     all_domain_names:
       - nelsonearle.com
@@ -17,6 +18,10 @@
       - www.finance.nelsonearle.com
     firefly_owner_email: admin@nelsonearle.com
   vars_prompt:
+    - name: primary_user_password
+      prompt: Primary User Password
+      private: true
+      unsafe: true
     - name: firefly_mysql_password
       prompt: Firefly III - MySQL Password
       private: true
@@ -61,14 +66,8 @@
     # User Setup
     # ==================================================
 
-    # - role: user-account
-    #   username: TODO
-    #   password: TODO
+    - primary-user
 
-    # - sudo-as-admin-successful
-    # - selected-editor
-
-    # - ssh-key
     # - oh-my-zsh
     # - dotfiles
 
