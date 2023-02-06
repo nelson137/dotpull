@@ -25,5 +25,9 @@
         checksum: 68e3f2711ad342e0eab8fd6a0f53c8c08bc09111
       notify: reload nginx
 
+    - name: Install default server config
+      template: src=default.conf.j2 dest=/etc/nginx/conf.d/default.conf
+      notify: reload nginx
+
     - name: Enable service
       systemd: name=nginx enabled=true state=started

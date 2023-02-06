@@ -9,6 +9,9 @@
       - www.cloud.nelsonearle.com
       - finance.nelsonearle.com
       - www.finance.nelsonearle.com
+    nginx_default_domain_names:
+      - nelsonearle.com
+      - www.nelsonearle.com
     firefly_domain_names:
       - finance.nelsonearle.com
       - www.finance.nelsonearle.com
