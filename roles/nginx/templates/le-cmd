@@ -1,0 +1,77 @@
+#!/bin/bash
+
+set -e
+
+LE_PATH=/opt/letsencrypt
+
+DOMAIN_NAME='{{ domain_name }}'
+ALL_DOMAIN_NAMES='{{ all_domain_names | join(",") }}'
+
+declare -a CMD
+
+usage() {
+    echo "Usage: $0 { challenger-up | challenger-down | cert-view | cert-get | cert-revoke | cert-renew }"
+    exit "${1:-0}"
+}
+
+certbot-docker() {
+    docker run --rm --name certbot \
+        -v /etc/letsencrypt:/etc/letsencrypt \
+        -v /var/lib/letsencrypt:/var/lib/letsencrypt \
+        -v /var/log/letsencrypt:/var/log/letsencrypt \
+        -v /data/letsencrypt:/data/letsencrypt \
+        certbot/certbot "$@"
+}
+
+challenger-up() {
+    docker-compose -f "$LE_PATH" up -d
+}
+
+challenger-down() {
+    docker-compose -f "$LE_PATH" down
+}
+
+cert-view() {
+    certbot-docker certificates "$@"
+}
+
+cert-get() {
+    certbot-docker certonly --cert-name "$DOMAIN_NAME" \
+        --webroot -w /data/letsencrypt -d "$ALL_DOMAIN_NAMES" \
+        --agree-tos --register-unsafely-without-email \
+        "$@"
+}
+
+cert-revoke() {
+    certbot-docker revoke --cert-name "$DOMAIN_NAME" \
+        --delete-after-revoke --noninteractive \
+        "$@"
+}
+
+cert-renew() {
+    certbot-docker renew --cert-name "$DOMAIN_NAME" --webroot -w /data/letsencrypt "$@"
+}
+
+main() {
+    [ $# -eq 0 ] && usage
+
+    while [ $# -ne 0 ]; do
+        case "$1" in
+            -h|--help) CMD=( usage ) ;;
+            *)         CMD+=( "$1" ) ;;
+        esac
+        shift
+    done
+
+    {% raw %} # Jinja2 raw block because {# ... #} is a comment
+    (( ${#CMD[@]} == 0 )) && usage
+    {% endraw %}
+
+    if declare -F "${CMD[0]}" >/dev/null; then
+        eval "${CMD[@]}"
+    else
+        usage 1
+    fi
+}
+
+main "$@"
