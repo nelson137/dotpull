@@ -24,7 +24,7 @@
       copy:
         src: nginx.conf
         dest: /etc/nginx/nginx.conf
-        checksum: bbf449ebc69bc33be154a15b86e94092aebb935e
+        checksum: d643f52b0c42bd950c33503d2a14e819d2f7bd87
       notify: reload nginx
 
     - name: Generate Diffie-Hellman parameters
@@ -40,11 +40,8 @@
     - name: Create Lets Encrypt working directory
       file: path='{{ le_dir }}' state=directory
 
-    - name: Install Docker Compose file for Lets Encrypt challenge container
-      copy: src=docker-compose.yml dest='{{ le_dir }}/docker-compose.yml'
-
-    - name: Install Nginx config for Lets Encrypt challenge
-      template: src=letsencrypt.conf.j2 dest='{{ le_dir }}/nginx.conf'
+    - name: Create Lets Encrypt webroot directory
+      file: path='/usr/share/nginx/letsencrypt' state=directory
 
     - name: Install Lets Encrypt command script
       template: src=le-cmd dest='{{ le_dir }}/le-cmd' mode=0775
@@ -54,7 +51,6 @@
       pip:
         name:
           - docker
-          - docker-compose
 
     - name: Check if Lets Encrypt certificate already exists
       stat: path='/etc/letsencrypt/live/{{ domain_name }}' get_checksum=false get_mime=false
@@ -62,12 +58,6 @@
 
     - when: le_cert.stat.exists == false
       block:
-
-        - name: Stop nginx service
-          service: name=nginx state=stopped
-
-        - name: Start Lets Encrypt challenge container
-          docker_compose: project_src='{{ le_dir }}' state=present
 
         - name: Get test certificate from Lets Encrypt
           command:
@@ -83,12 +73,6 @@
           command:
             cmd: '{{ le_dir }}/le-cmd cert-get'
             creates: '/etc/letsencrypt/live/{{ domain_name }}'
-
-        - name: Stop and remove Lets Encrypt challenge container
-          docker_compose: project_src='{{ le_dir }}' state=absent
-
-        - name: Start nginx service
-          service: name=nginx state=started
 
     - name: Install cron job to renew the Lets Encrypt certificate
       cron:

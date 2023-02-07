@@ -3,6 +3,7 @@
 set -e
 
 LE_PATH=/opt/letsencrypt
+LE_WEBROOT=/usr/share/nginx/letsencrypt
 
 DOMAIN_NAME='{{ domain_name }}'
 ALL_DOMAIN_NAMES='{{ all_domain_names | join(",") }}'
@@ -10,7 +11,7 @@ ALL_DOMAIN_NAMES='{{ all_domain_names | join(",") }}'
 declare -a CMD
 
 usage() {
-    echo "Usage: $0 { challenger-up | challenger-down | cert-view | cert-get | cert-revoke | cert-renew }"
+    echo "Usage: $0 { cert-view | cert-get | cert-revoke | cert-renew }"
     exit "${1:-0}"
 }
 
@@ -19,16 +20,8 @@ certbot-docker() {
         -v /etc/letsencrypt:/etc/letsencrypt \
         -v /var/lib/letsencrypt:/var/lib/letsencrypt \
         -v /var/log/letsencrypt:/var/log/letsencrypt \
-        -v /data/letsencrypt:/data/letsencrypt \
+        -v "$LE_WEBROOT:/data" \
         certbot/certbot "$@"
-}
-
-challenger-up() {
-    docker-compose -f "$LE_PATH" up -d
-}
-
-challenger-down() {
-    docker-compose -f "$LE_PATH" down
 }
 
 cert-view() {
@@ -37,7 +30,7 @@ cert-view() {
 
 cert-get() {
     certbot-docker certonly --cert-name "$DOMAIN_NAME" \
-        --webroot -w /data/letsencrypt -d "$ALL_DOMAIN_NAMES" \
+        --webroot -w /data -d "$ALL_DOMAIN_NAMES" \
         --agree-tos --register-unsafely-without-email \
         "$@"
 }
@@ -49,7 +42,7 @@ cert-revoke() {
 }
 
 cert-renew() {
-    certbot-docker renew --cert-name "$DOMAIN_NAME" --webroot -w /data/letsencrypt "$@"
+    certbot-docker renew --cert-name "$DOMAIN_NAME" --webroot -w /data "$@"
 }
 
 main() {
