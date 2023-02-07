@@ -13,9 +13,7 @@
     nginx_default_domain_names:
       - nelsonearle.com
       - www.nelsonearle.com
-    firefly_domain_names:
-      - finance.nelsonearle.com
-      - www.finance.nelsonearle.com
+    firefly_domain_name: finance.nelsonearle.com
     firefly_owner_email: admin@nelsonearle.com
   vars_prompt:
     - name: primary_user_password
