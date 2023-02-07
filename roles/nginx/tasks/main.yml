@@ -24,7 +24,7 @@
       copy:
         src: nginx.conf
         dest: /etc/nginx/nginx.conf
-        checksum: d643f52b0c42bd950c33503d2a14e819d2f7bd87
+        checksum: e66d15beabc7d71be93340ce22e147b5ac2cd8d4
       notify: reload nginx
 
     - name: Generate Diffie-Hellman parameters
