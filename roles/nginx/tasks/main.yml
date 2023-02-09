@@ -30,6 +30,8 @@
     - name: Generate Diffie-Hellman parameters
       openssl_dhparam: size=4096 path=/etc/ssl/certs/dhparam.pem
 
+    # Delete HTTP Strict Transport Security headers cache on Chrome
+    # [here](chrome://net-internals/#hsts)
     - name: Install SSL config
       template: src=ssl.conf.j2 dest=/etc/nginx/ssl.conf
       notify: reload nginx
@@ -59,6 +61,11 @@
     - when: le_cert.stat.exists == false
       block:
 
+        # Get the current certificate issuer, issue date, and expiration date,
+        # (the issuer for the test cert will be prefixed with "(STAGING)"):
+        #
+        #   $ curl -sSkIvv https://nelsonearle.com 2>&1 | sed -nE '/\* Server certificate:/{:loop;p;n;/^\*  /b loop;q}'
+        #
         - name: Get test certificate from Lets Encrypt
           command:
             cmd: '{{ le_dir }}/le-cmd cert-get --staging'
