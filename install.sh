@@ -15,8 +15,6 @@ PLAYBOOKS=()
 PLAYBOOK_CHOICE=
 REPO='nelson137/dotpull'
 REPO_URL="https://github.com/$REPO"
-INVENTORY_URL="https://raw.githubusercontent.com/$REPO/master/inventory.ini"
-TEMP_INVENTORY_FILE='/tmp/inventory.ini'
 
 BOLD="$(tput bold)"
 GREEN="$(tput setaf 2)"
@@ -137,9 +135,7 @@ _python() {
 
 # region github api
 
-USER='nelson137'
-REPO='dotpull'
-API_URL="https://api.github.com/repos/$USER/$REPO"
+_API_URL="https://api.github.com/repos/$REPO"
 
 _GH_API_HEADER=
 
@@ -149,7 +145,7 @@ github_api() {
     local response
     _GH_API_HEADER="$(mktemp /tmp/dotpull-github-api-header-XXXXXX.json)"
     _trap_set _cleanup_gh_api_header
-    response="$(curl -sSLD "$_GH_API_HEADER" "${API_URL}${1}")"
+    response="$(curl -sSLD "$_GH_API_HEADER" "${_API_URL}${1}")"
     if echo "$response" | grep -q 'API rate limit exceeded'; then
         awk -v IGNORECASE=1 '
             /^X-Ratelimit-Reset:/{
@@ -357,6 +353,9 @@ usage() {
     echo "Usage: $0 PLAYBOOK.yml"
     exit "${1:-0}"
 }
+
+INVENTORY_URL="https://raw.githubusercontent.com/$REPO/master/inventory.ini"
+TEMP_INVENTORY_FILE='/tmp/inventory.ini'
 
 _cleanup_inventory_file() { rm -f "$TEMP_INVENTORY_FILE"; }
 
