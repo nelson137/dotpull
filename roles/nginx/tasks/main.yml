@@ -48,7 +48,6 @@
     - name: Install Lets Encrypt command script
       template: src=le-cmd dest='{{ le_dir }}/le-cmd' mode=0775
 
-    # TODO: don't pip install docker in install.sh, do it in the playbook
     - name: Install dependencies for ansible docker modules
       pip:
         name:

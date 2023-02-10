@@ -384,7 +384,7 @@ main() {
 
     # Install ansible & its python dependencies
     pip3_upgrade
-    pip3_install ansible docker
+    pip3_install ansible
 
     local title="Executing playbook: $PLAYBOOK_CHOICE"
     printf "\n${GREEN}${BOLD}"
