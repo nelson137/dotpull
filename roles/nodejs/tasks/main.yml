@@ -18,7 +18,7 @@
       get_url:
         url: "https://deb.nodesource.com/setup_{{ latest_v.stdout }}.x"
         dest: /tmp/setup-nodejs
-        mode: +x
+        mode: 0755
 
     - name: Execute setup script
       become: true

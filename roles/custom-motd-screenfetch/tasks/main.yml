@@ -4,7 +4,4 @@
 
 - name: Install custom header script
   become: true
-  copy:
-    src: 00-custom-header
-    dest: /etc/update-motd.d/00-custom-header
-    mode: u=rwx,g=rx,o=rx
+  copy: src=00-custom-header dest=/etc/update-motd.d/00-custom-header mode=0755
