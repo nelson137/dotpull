@@ -36,18 +36,18 @@
     # - custom-motd
     # - custom-motd-screenfetch
 
-    # - role: install-packages
-    #   yum_packages:
-    #     - ca-certificates
-    #     - git
-    #     - jq
-    #     - nmap
-    #     - tar
-    #     - traceroute
-    #     - unzip
-    #     - vim
-    #     - zip
-    #     - zsh
+    - role: install-packages
+      yum_packages:
+        # - ca-certificates
+        # - git
+        - jq
+        # - nmap
+        # - tar
+        # - traceroute
+        # - unzip
+        # - vim
+        # - zip
+        # - zsh
 
     - nginx
     - nginx-dotpull-host

@@ -120,6 +120,18 @@ stop_spinner() {
 # endregion
 
 ##################################################
+# UTILITIES
+##################################################
+
+# region utils
+
+_python() {
+    python -c 'from __future__ import print_function;'"$*"
+}
+
+# endregion utils
+
+##################################################
 # GITHUB API
 ##################################################
 
@@ -156,12 +168,13 @@ github_api() {
 
 _get_playbooks_from_head() {
     local head_sha
-    head_sha="$(github_api /commits | jq -r '.[0].commit.tree.sha')"
+    head_sha="$(github_api /commits | _python 'import json,sys; print(json.loads(sys.stdin.read())[0]["commit"]["tree"]["sha"])')"
 
-    github_api "/git/trees/$head_sha" | jq -r '
-        def is_yaml: endswith(".yml") or endswith(".yaml");
-        .tree | map(.path)[] | select(is_yaml)
-    '
+    github_api "/git/trees/$head_sha" | _python '
+import json,sys
+is_yml = lambda p: p.endswith(".yml") or p.endswith(".yaml")
+data = json.loads(sys.stdin.read())
+[print(x["path"]) for x in data["tree"] if is_yml(x["path"])]'
 }
 
 # endregion
@@ -359,7 +372,7 @@ main() {
     get_os_info
 
     # Install script dependencies
-    install_packages curl git jq
+    install_packages curl git
 
     get_playbook_list
 
