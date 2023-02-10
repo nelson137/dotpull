@@ -20,3 +20,7 @@ ssl_trusted_certificate /etc/letsencrypt/live/nelsonearle.com/chain.pem;
 
 # Headers
 add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always; # 1 year
+add_header X-Content-Type-Options "nosniff" always;
+add_header X-Frame-Options "DENY" always;
+add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+add_header Feature-Policy "accelerometer 'none'; ambient-light-sensor 'none'; magnetometer 'none'; camera 'none'; geolocation 'none'; microphone 'none'; payment 'none'; speaker 'none'; usb 'none'; vibrate 'none'; vr 'none';" always;
