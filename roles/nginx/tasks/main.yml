@@ -20,24 +20,8 @@
           when: ansible_distribution != "Amazon"
           yum: name=nginx state=latest
 
-    - name: Install config
-      copy:
-        src: nginx.conf
-        dest: /etc/nginx/nginx.conf
-        checksum: 155013005720e719b6d8f13be737fe6430e7af34
-      notify: reload nginx
-
     - name: Generate Diffie-Hellman parameters
       openssl_dhparam: size=4096 path=/etc/ssl/certs/dhparam.pem
-
-    # Delete HTTP Strict Transport Security headers cache on Chrome
-    # [here](chrome://net-internals/#hsts)
-    - name: Install SSL config
-      template: src=ssl.conf.j2 dest=/etc/nginx/ssl.conf
-      notify: reload nginx
-
-    - name: Enable service
-      systemd: name=nginx enabled=true state=started
 
     - name: Create Lets Encrypt working directory
       file: path='{{ le_dir }}' state=directory
@@ -60,6 +44,12 @@
     - when: le_cert.stat.exists == false
       block:
 
+        - name: Install bootstrap config
+          copy: src=letsencrypt-nginx.conf dest=/etc/nginx/nginx.conf
+
+        - name: Enable service
+          systemd: name=nginx enabled=true state=started
+
         # Get the current certificate issuer, issue date, and expiration date,
         # (the issuer for the test cert will be prefixed with "(STAGING)"):
         #
@@ -80,6 +70,9 @@
             cmd: '{{ le_dir }}/le-cmd cert-get'
             creates: '/etc/letsencrypt/live/{{ domain_name }}'
 
+    - name: Install config
+      copy: src=nginx.conf dest=/etc/nginx/nginx.conf
+
     - name: Install cron job to renew the Lets Encrypt certificate
       cron:
         name: renew Lets Encrypt certificate
@@ -87,3 +80,9 @@
         minute: '0'
         hour: '23'
         job: '{{ le_dir }}/le-cmd cert-renew'
+
+    # Delete HTTP Strict Transport Security headers cache on Chrome
+    # [here](chrome://net-internals/#hsts)
+    - name: Install SSL config
+      template: src=ssl.conf.j2 dest=/etc/nginx/ssl.conf
+      notify: reload nginx
