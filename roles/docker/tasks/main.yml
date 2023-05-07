@@ -8,7 +8,7 @@
         docker_keyring_url: '{{ docker_repo_url }}/gpg'
       block:
 
-        - name: Add apt key
+        - name: Add apt key (Debian)
           apt_key:
             url: '{{ docker_keyring_url }}'
             keyring: '{{ docker_keyring }}'
@@ -23,14 +23,14 @@
             deb_arch: '{{ _arch_map[ansible_architecture] }}'
           block:
 
-            - name: Add apt repository
+            - name: Add apt repository (Debian)
               apt_repository:
                 repo: "deb [arch={{ deb_arch }} signed-by={{ docker_keyring }}] {{ docker_repo_url }} {{ ansible_lsb['codename'] }} stable"
 
-        - name: Install
+        - name: Install (Debian)
           apt: name=docker-ce state=latest
 
-    - name: Install Docker
+    - name: Install Docker (Amazon)
       when: ansible_distribution == "Amazon"
       command:
         cmd: amazon-linux-extras install -y docker
