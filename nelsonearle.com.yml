@@ -3,18 +3,19 @@
   vars:
     primary_user: nelson
     domain_name: nelsonearle.com
-    all_domain_names:
-      - nelsonearle.com
-      - www.nelsonearle.com
-      - cloud.nelsonearle.com
-      - www.cloud.nelsonearle.com
-      - finance.nelsonearle.com
-      - www.finance.nelsonearle.com
-    nginx_default_domain_names:
-      - nelsonearle.com
-      - www.nelsonearle.com
-    firefly_domain_name: finance.nelsonearle.com
+    nextcloud_domain_name: 'cloud.{{ domain_name }}'
+    firefly_domain_name: 'finance.{{ domain_name }}'
     firefly_owner_email: admin@nelsonearle.com
+    all_domain_names:
+      - '{{ domain_name }}'
+      - 'www.{{ domain_name }}'
+      - '{{ nextcloud_domain_name }}'
+      - 'www.{{ nextcloud_domain_name }}'
+      - '{{ firefly_domain_name }}'
+      - 'www.{{ firefly_domain_name }}'
+    nginx_default_domain_names:
+      - '{{ domain_name }}'
+      - 'www.{{ domain_name }}'
   vars_prompt:
     - name: primary_user_password
       prompt: Primary User Password

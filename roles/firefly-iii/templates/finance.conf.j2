@@ -9,11 +9,11 @@
 server {
     listen 443 ssl http2;
     listen [::]:443 ssl http2;
-    server_name www.finance.nelsonearle.com;
+    server_name www.{{ firefly_domain_name }};
     include /etc/nginx/ssl.conf;
     location / {
         # TODO: change code to 301 after testing
-        return 302 https://finance.nelsonearle.com$request_uri;
+        return 302 https://{{ firefly_domain_name }}$request_uri;
     }
 }
 
