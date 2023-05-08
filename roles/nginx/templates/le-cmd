@@ -21,7 +21,8 @@ certbot-docker() {
         -v /var/lib/letsencrypt:/var/lib/letsencrypt \
         -v /var/log/letsencrypt:/var/log/letsencrypt \
         -v "$LE_WEBROOT:/data" \
-        certbot/certbot "$@"
+        certbot/certbot \
+        --noninteractive "$@"
 }
 
 cert-view() {
@@ -29,20 +30,23 @@ cert-view() {
 }
 
 cert-get() {
-    certbot-docker certonly --cert-name "$DOMAIN_NAME" \
-        --webroot -w /data -d "$ALL_DOMAIN_NAMES" \
+    certbot-docker certonly \
+        --cert-name "$DOMAIN_NAME" -d "$ALL_DOMAIN_NAMES" \
+        --webroot -w /data \
         --agree-tos --register-unsafely-without-email \
         "$@"
 }
 
 cert-revoke() {
-    certbot-docker revoke --cert-name "$DOMAIN_NAME" \
-        --delete-after-revoke --noninteractive \
+    certbot-docker revoke \
+        --cert-name "$DOMAIN_NAME" --delete-after-revoke \
         "$@"
 }
 
 cert-renew() {
-    certbot-docker renew --cert-name "$DOMAIN_NAME" --webroot -w /data "$@"
+    certbot-docker renew \
+        --cert-name "$DOMAIN_NAME" --webroot -w /data \
+        "$@"
 }
 
 main() {
