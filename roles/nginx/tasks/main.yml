@@ -48,7 +48,7 @@
           copy: src=letsencrypt-nginx.conf dest=/etc/nginx/nginx.conf
 
         - name: Enable service
-          systemd: name=nginx enabled=true state=started
+          systemd: name=nginx enabled=true state=reloaded
 
         # Get the current certificate issuer, issue date, and expiration date,
         # (the issuer for the test cert will be prefixed with "(STAGING)"):
@@ -72,6 +72,11 @@
 
     - name: Install config
       copy: src=nginx.conf dest=/etc/nginx/nginx.conf
+      notify: reload nginx
+
+    - name: Disable default site
+      file: path=/etc/nginx/sites-enabled/default state=absent
+      notify: reload nginx
 
     - name: Install cron job to renew the Lets Encrypt certificate
       cron:
