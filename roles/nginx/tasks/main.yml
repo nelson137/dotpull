@@ -89,5 +89,5 @@
     # Delete HTTP Strict Transport Security headers cache on Chrome
     # [here](chrome://net-internals/#hsts)
     - name: Install SSL config
-      template: src=ssl.conf.j2 dest=/etc/nginx/ssl.conf
+      template: src=ssl.conf.j2 dest=/etc/nginx/conf.d/ssl.conf
       notify: reload nginx
