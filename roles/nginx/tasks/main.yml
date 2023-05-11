@@ -24,6 +24,16 @@
       file: path=/etc/nginx/sites-enabled/default state=absent
       notify: reload nginx
 
+    - name: Install root site
+      copy: src=root.conf dest='/etc/nginx/sites-available/{{ domain_name }}'
+      notify: reload nginx
+
+    - name: Enable root site
+      file:
+        state: link
+        path: '/etc/nginx/sites-enabled/{{ domain_name }}'
+        src: '../sites-available/{{ domain_name }}'
+
     - name: Generate Diffie-Hellman parameters
       openssl_dhparam: size=4096 path=/etc/ssl/certs/dhparam.pem
 
@@ -91,16 +101,6 @@
     - name: Install SSL config
       template: src=ssl.conf.j2 dest=/etc/nginx/conf.d/ssl.conf
       notify: reload nginx
-
-    - name: Install root site
-      copy: src=root.conf dest='/etc/nginx/sites-available/{{ domain_name }}'
-      notify: reload nginx
-
-    - name: Enable root site
-      file:
-        state: link
-        path: '/etc/nginx/sites-enabled/{{ domain_name }}'
-        src: '../sites-available/{{ domain_name }}'
 
     - name: Install config
       copy: src=nginx.conf dest=/etc/nginx/nginx.conf
