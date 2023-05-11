@@ -1,0 +1,152 @@
+- become: true
+  block:
+
+    - name: Install PHP 8.1 and modules
+      apt:
+        state: latest
+        name:
+          - acl
+          - bzip2
+          - ffmpeg
+          - gpg
+          - libxml2
+          - mariadb-server
+          - php8.1
+          - php8.1-apcu
+          - php8.1-bcmath
+          - php8.1-bz2
+          - php8.1-curl
+          - php8.1-fileinfo
+          - php8.1-fpm
+          - php8.1-gd
+          - php8.1-gmp
+          - php8.1-gmp
+          - php8.1-imagick
+          - php8.1-intl
+          - php8.1-mbstring
+          - php8.1-mysql
+          - php8.1-xml
+          - php8.1-zip
+
+    - name: Check if already installed
+      stat: path=/var/www/nextcloud get_checksum=false get_mime=false
+      register: nextcloud_dir
+
+    - name: Downloads
+      vars:
+        archive_url: https://download.nextcloud.com/server/releases/latest.tar.bz2
+      when: nextcloud_dir.stat.exists == false
+      block:
+
+        - name: Download archive
+          get_url:
+            url: "{{ archive_url }}"
+            dest: /tmp/nextcloud.tar.bz2
+            checksum: "sha256:{{ archive_url }}.sha256"
+
+        - name: Download Nextcloud's PGP key
+          get_url:
+            url: https://nextcloud.com/nextcloud.asc
+            dest: /tmp/nextcloud.asc
+
+        - name: Download archive PGP signature
+          get_url:
+            url: "{{ archive_url }}.asc"
+            dest: /tmp/nextcloud.tar.bz2.asc
+
+        - name: Import Nextcloud's PGP key
+          command: gpg --import /tmp/nextcloud.asc
+          notify: remove nextcloud server pgp key
+
+        - name: Verify archive's PGP signature
+          command: gpg --verify /tmp/nextcloud.tar.bz2.asc /tmp/nextcloud.tar.bz2
+          notify: remove nextcloud server archive pgp signature
+
+        - name: Extract archive
+          unarchive:
+            remote_src: yes
+            src: /tmp/nextcloud.tar.bz2
+            dest: /var/www/nextcloud
+            creates: /var/www/nextcloud
+            owner: www-data
+            group: www-data
+          notify: remove nextcloud server archive
+
+    - name: Install site config
+      template: src=nextcloud.conf.j2 dest='/etc/nginx/sites-available/{{ nextcloud_domain_name }}'
+
+    - name: Enable site config
+      file:
+        state: link
+        path: '/etc/nginx/sites-enabled/{{ nextcloud_domain_name }}'
+        src: '../sites-available/{{ nextcloud_domain_name }}'
+      notify: reload nginx
+
+    - name: Copy MariaDB config
+      copy: src=60-nextcloud.cnf dest=/etc/mysql/mariadb.conf.d/60-nextcloud.cnf
+
+    - name: Check if MySQL database already setup
+      shell: mysql -sNe 'USE nextcloud; SELECT @@character_set_database,@@collation_database' | grep -Pq 'utf8mb4\tutf8mb4_general_ci'
+      register: nc_db_is_setup
+      failed_when: false
+      changed_when: false
+
+    - when: nc_db_is_setup.rc != 0
+      block:
+
+        - name: Delete any existing database
+          command: mysql -e 'DROP DATABASE IF EXISTS nextcloud'
+
+        - name: Setup MySQL database
+          command: mysql -e "CREATE DATABASE nextcloud CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci; CREATE USER IF NOT EXISTS '{{ nextcloud_db_user }}'@'localhost' IDENTIFIED BY '{{ nextcloud_db_pass }}'; GRANT ALL PRIVILEGES ON nextcloud.* TO '{{ nextcloud_db_user }}'@'localhost' IDENTIFIED BY '{{ nextcloud_db_pass }}'; FLUSH PRIVILEGES"
+
+    - name: Get installation status
+      become_user: www-data
+      command: php /var/www/nextcloud/occ --help
+      changed_when: false
+      register: nc_install_status
+
+    - name: Install
+      when: nc_install_status.stderr.startswith('Nextcloud is not installed')
+      become_user: www-data
+      command: php /var/www/nextcloud/occ maintenance:install --database mysql --database-name nextcloud --database-user "{{ nextcloud_db_user }}" --database-pass "{{ nextcloud_db_pass }}" --admin-user "{{ nextcloud_admin_user }}" --admin-pass "{{ nextcloud_admin_pass }}"
+
+    - name: Add trusted domain to config
+      lineinfile:
+        path: /var/www/nextcloud/config/config.php
+        insertafter: "0 => 'localhost',"
+        line: "    1 => '{{ nextcloud_domain_name }}',"
+
+    - name: Fix url rewrite in config
+      lineinfile:
+        path: /var/www/nextcloud/config/config.php
+        regexp: "  'overwrite\\.cli\\.url' => 'http://localhost',"
+        line: "  'overwrite.cli.url' => 'https://{{ nextcloud_domain_name }}',"
+      notify: update nextcloud htaccess
+
+    - name: Add htaccess RewriteBase to config
+      lineinfile:
+        path: /var/www/nextcloud/config/config.php
+        insertafter: 'overwrite.cli.url'
+        line: "  'htaccess.RewriteBase' => '/',"
+      notify: update nextcloud htaccess
+
+    - name: Enable MySQL utf8mb4 charset in config
+      lineinfile:
+        path: /var/www/nextcloud/config/config.php
+        insertafter: 'dbpassword'
+        line: "  'mysql.utf8mb4' => true,"
+
+    - name: Cleanup Nextcloud files
+      file:
+        path: "/var/www/nextcloud/data/{{ nextcloud_admin_user }}/files/{{ item }}"
+        state: absent
+      loop:
+        - Nextcloud intro.mp4
+        - Nextcloud.png
+        - Documents/Example.md
+        - Documents/Example.odt
+        - Documents/Nextcloud flyer.pdf
+        - Documents/Readme.md
+        - Photos
+      notify: reindex nextcloud files
