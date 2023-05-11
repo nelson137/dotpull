@@ -20,6 +20,10 @@
           when: ansible_distribution != "Amazon"
           yum: name=nginx state=latest
 
+    - name: Disable default site
+      file: path=/etc/nginx/sites-enabled/default state=absent
+      notify: reload nginx
+
     - name: Generate Diffie-Hellman parameters
       openssl_dhparam: size=4096 path=/etc/ssl/certs/dhparam.pem
 
@@ -70,14 +74,6 @@
             cmd: '{{ le_dir }}/le-cmd cert-get'
             creates: '/etc/letsencrypt/live/{{ domain_name }}'
 
-    - name: Install config
-      copy: src=nginx.conf dest=/etc/nginx/nginx.conf
-      notify: reload nginx
-
-    - name: Disable default site
-      file: path=/etc/nginx/sites-enabled/default state=absent
-      notify: reload nginx
-
     - name: Install cron job to renew the Lets Encrypt certificate
       cron:
         name: renew Lets Encrypt certificate
@@ -90,4 +86,8 @@
     # [here](chrome://net-internals/#hsts)
     - name: Install SSL config
       template: src=ssl.conf.j2 dest=/etc/nginx/conf.d/ssl.conf
+      notify: reload nginx
+
+    - name: Install config
+      copy: src=nginx.conf dest=/etc/nginx/nginx.conf
       notify: reload nginx
