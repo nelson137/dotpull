@@ -58,7 +58,7 @@
 
     # - nextcloud-server
 
-    - firefly-iii
+    - nginx-firefly-iii
 
     # ==================================================
     # User Setup
