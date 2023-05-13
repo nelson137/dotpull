@@ -20,6 +20,9 @@
           when: ansible_distribution != "Amazon"
           yum: name=nginx state=latest
 
+    - name: Enable Nginx service
+      service: name=nginx enabled=true
+
     - name: Disable default site
       file: path=/etc/nginx/sites-enabled/default state=absent
       notify: reload nginx
@@ -61,8 +64,8 @@
         - name: Install bootstrap config
           copy: src=letsencrypt-nginx.conf dest=/etc/nginx/nginx.conf
 
-        - name: Enable service
-          systemd: name=nginx enabled=true state=reloaded
+        - name: Reload Nginx service
+          systemd: name=nginx state=reloaded
 
         # Get the current certificate issuer, issue date, and expiration date,
         # (the issuer for the test cert will be prefixed with "(STAGING)"):
