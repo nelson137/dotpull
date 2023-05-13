@@ -13,15 +13,6 @@
       - 'www.{{ nextcloud_domain_name }}'
       - '{{ firefly_domain_name }}'
       - 'www.{{ firefly_domain_name }}'
-  vars_prompt:
-    - name: primary_user_password
-      prompt: Primary User Password
-      private: true
-      unsafe: true
-    - name: firefly_mysql_password
-      prompt: Firefly III - MySQL Password
-      private: true
-      unsafe: true
 
   roles:
 
