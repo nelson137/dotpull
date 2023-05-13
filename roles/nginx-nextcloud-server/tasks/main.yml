@@ -56,11 +56,9 @@
 
         - name: Import Nextcloud's PGP key
           command: gpg --import /tmp/nextcloud.asc
-          notify: remove nextcloud server pgp key
 
         - name: Verify archive's PGP signature
           command: gpg --verify /tmp/nextcloud.tar.bz2.asc /tmp/nextcloud.tar.bz2
-          notify: remove nextcloud server archive pgp signature
 
         - name: Extract archive
           unarchive:
@@ -70,7 +68,13 @@
             creates: /var/www/nextcloud
             owner: www-data
             group: www-data
-          notify: remove nextcloud server archive
+
+        - name: Cleanup downloads
+          file: state=absent path='/tmp/{{ item }}'
+          loop:
+            - nextcloud.tar.bz2
+            - nextcloud.tar.bz2.asc
+            - nextcloud.asc
 
     - name: Install site config
       template: src=nextcloud.conf.j2 dest='/etc/nginx/sites-available/{{ nextcloud_domain_name }}'
