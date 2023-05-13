@@ -1,13 +1,13 @@
 - name: remove nextcloud server pgp key
+  become: true
   file: path=/tmp/nextcloud.asc state=absent
 
 - name: remove nextcloud server archive pgp signature
+  become: true
   file: path=/tmp/nextcloud.tar.bz2.asc state=absent
 
 - name: remove nextcloud server archive
-  file: path=/tmp/nextcloud.tar.bz2 state=absent
-
-- name: remove nextcloud server archive
+  become: true
   file: path=/tmp/nextcloud.tar.bz2 state=absent
 
 - name: reload nginx
