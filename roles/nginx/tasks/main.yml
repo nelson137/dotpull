@@ -27,16 +27,6 @@
       file: path=/etc/nginx/sites-enabled/default state=absent
       notify: reload nginx
 
-    - name: Install root site
-      template: src=root.conf dest='/etc/nginx/sites-available/{{ domain_name }}'
-      notify: reload nginx
-
-    - name: Enable root site
-      file:
-        state: link
-        path: '/etc/nginx/sites-enabled/{{ domain_name }}'
-        src: '../sites-available/{{ domain_name }}'
-
     - name: Generate Diffie-Hellman parameters
       openssl_dhparam: size=4096 path=/etc/ssl/certs/dhparam.pem
 
@@ -61,8 +51,14 @@
     - when: le_cert.stat.exists == false
       block:
 
-        - name: Install bootstrap config
-          copy: src=letsencrypt-nginx.conf dest=/etc/nginx/nginx.conf
+        - name: Remove Lets Encrypt bootstrap conflicts
+          file: state=absent path='/etc/nginx/{{ item }}'
+          loop:
+            - 'sites-enabled/{{ domain_name }}'
+            - conf.d/ssl.conf
+
+        - name: Install & enable Lets Encrypt bootstrap site
+          copy: src=letsencrypt-bootstrap.conf dest=/etc/nginx/sites-enabled/letsencrypt-bootstrap.conf
 
         - name: Reload Nginx service
           systemd: name=nginx state=reloaded
@@ -87,6 +83,9 @@
             cmd: '{{ le_dir }}/le-cmd cert-get'
             creates: '/etc/letsencrypt/live/{{ domain_name }}'
 
+        - name: Remove Lets Encrypt bootstrap site
+          file: state=absent path=/etc/nginx/sites-enabled/letsencrypt-bootstrap.conf
+
     - name: Install cron job to renew the Lets Encrypt certificate
       cron:
         name: renew Lets Encrypt certificate
@@ -94,6 +93,16 @@
         minute: '0'
         hour: '23'
         job: '{{ le_dir }}/le-cmd cert-renew'
+
+    - name: Install root site
+      template: src=root.conf dest='/etc/nginx/sites-available/{{ domain_name }}'
+      notify: reload nginx
+
+    - name: Enable root site
+      file:
+        state: link
+        path: '/etc/nginx/sites-enabled/{{ domain_name }}'
+        src: '../sites-available/{{ domain_name }}'
 
     - name: Install general tweaks config
       copy: src=tweaks.conf dest=/etc/nginx/conf.d/tweaks.conf
