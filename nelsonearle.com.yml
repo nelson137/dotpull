@@ -13,9 +13,6 @@
       - 'www.{{ nextcloud_domain_name }}'
       - '{{ firefly_domain_name }}'
       - 'www.{{ firefly_domain_name }}'
-    nginx_default_domain_names:
-      - '{{ domain_name }}'
-      - 'www.{{ domain_name }}'
   vars_prompt:
     - name: primary_user_password
       prompt: Primary User Password

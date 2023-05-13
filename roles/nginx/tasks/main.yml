@@ -25,7 +25,7 @@
       notify: reload nginx
 
     - name: Install root site
-      copy: src=root.conf dest='/etc/nginx/sites-available/{{ domain_name }}'
+      template: src=root.conf dest='/etc/nginx/sites-available/{{ domain_name }}'
       notify: reload nginx
 
     - name: Enable root site
