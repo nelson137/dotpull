@@ -1,0 +1,16 @@
+---
+- hosts: all
+  vars:
+    primary_user: nelson
+    domain_name: nelsonearle.com
+    nextcloud_domain_name: 'cloud.{{ domain_name }}'
+    firefly_domain_name: 'finance.{{ domain_name }}'
+    firefly_owner_email: admin@nelsonearle.com
+    all_domain_names:
+      - '{{ domain_name }}'
+      - '{{ nextcloud_domain_name }}'
+      - '{{ firefly_domain_name }}'
+
+  tasks:
+
+    - debug: msg=Hello
