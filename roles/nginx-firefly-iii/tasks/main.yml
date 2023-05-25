@@ -33,7 +33,7 @@
       template: src=finance.conf.j2 dest=/etc/nginx/conf.d/finance.conf
       notify: reload nginx
 
-    - when: ansible_distribution == 'Debian'
+    - when: ansible_os_family == 'Debian'
       block:
 
         - name: Copy Nginx server config (Debian)
