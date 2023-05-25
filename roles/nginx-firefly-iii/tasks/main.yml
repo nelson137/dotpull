@@ -2,9 +2,51 @@
   vars:
     firefly_dir: /opt/firefly-iii
     firefly_docker_compose_path: '{{ firefly_dir }}/docker-compose.yml'
-    firefly_host_port: 8002
+    firefly_host_port: 8081
     firefly_env_path: '{{ firefly_dir }}/.env'
   block:
+
+    - name: Install dependencies
+      apt:
+        state: latest
+        name:
+          - mariadb-server
+
+    - when: ansible_os_family == 'Debian'
+      block:
+
+        - name: Configure MariaDB bind address (Debian)
+          lineinfile:
+            path: /etc/mysql/mariadb.conf.d/50-server.cnf
+            backrefs: true
+            regexp: ^(\s*bind-address\s*=\s*)\d+(\.\d+){3}
+            line: \g<1>0.0.0.0
+          register: mariadb_config_bind_addr
+
+        - name: Restart MariaDB server
+          when: mariadb_config_bind_addr.changed
+          service: name=mariadb state=restarted
+
+    - name: Check if database exists
+      command: mysql -sse "SELECT COUNT(*) FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '{{ firefly_db_database }}'"
+      register: db_exists
+      changed_when: false
+
+    - name: Create database
+      when: db_exists.stdout == '0'
+      command: mysql -e 'CREATE DATABASE `{{ firefly_db_database }}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci'
+
+    - name: Check if database user exists
+      command: mysql -sse "SELECT COUNT(*) FROM mysql.user WHERE User = '{{ firefly_db_username }}'"
+      register: db_user_exists
+      changed_when: false
+
+    - name: Create database user & grant privileges
+      when: db_user_exists.stdout == '0'
+      command: mysql -e "
+        GRANT ALL PRIVILEGES ON `{{ firefly_db_database }}`.* TO '{{ firefly_db_username }}'@'%' IDENTIFIED BY '{{ firefly_db_password }}';
+        FLUSH PRIVILEGES;
+        "
 
     - name: Create working directory
       file: path='{{ firefly_dir }}' state=directory
@@ -12,20 +54,26 @@
     - name: Install Docker Compose file
       template: src=docker-compose.yml.j2 dest='{{ firefly_docker_compose_path }}'
 
+    - name: Get host IP on Docker network docker0
+      shell: ip addr show dev docker0 | awk '/inet /{print gensub(/\/[0-9]+$/, "", 1, $2)}'
+      register: docker_host_ip
+      changed_when: false
+
     - name: Install environment file
       template: src=env.j2 dest='{{ firefly_env_path }}' force=false
       vars:
         firefly_app_key: '{{ lookup("random_string", length=32, special=False) }}'
+        firefly_db_host: '{{ docker_host_ip.stdout }}'
 
     - name: List running Docker Compose projects
       command: docker compose ls --format=json
       register: docker_compose_ls
       changed_when: false
 
-    - name: Start
+    - name: Start app container
       when: firefly_docker_compose_path not in (docker_compose_ls.stdout | from_json | map(attribute='ConfigFiles'))
       command:
-        cmd: docker compose up -d
+        cmd: docker compose up -d --quiet-pull
         chdir: '{{ firefly_dir }}'
 
     - name: Copy Nginx server config (Amazon)
@@ -37,14 +85,11 @@
       block:
 
         - name: Copy Nginx server config (Debian)
-          copy:
-            src: finance.conf
-            dest: /etc/nginx/sites-available/finance.conf
-            checksum: '{{ nginx_conf_checksum }}'
+          template: src=finance.conf.j2 dest='/etc/nginx/sites-available/{{ firefly_domain_name }}'
 
         - name: Enable Nginx server config (Debian)
           file:
-            src: /etc/nginx/sites-available/finance.conf
-            dest: /etc/nginx/sites-enabled/finance.conf
             state: link
+            path: '/etc/nginx/sites-enabled/{{ firefly_domain_name }}'
+            src: '../sites-available/{{ firefly_domain_name }}'
           notify: reload nginx
