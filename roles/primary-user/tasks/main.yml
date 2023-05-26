@@ -1,4 +1,5 @@
 - name: Create account
+  become: true
   user:
     name: '{{ primary_user }}'
     password: '{{ primary_user_password | password_hash }}'
