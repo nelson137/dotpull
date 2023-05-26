@@ -9,5 +9,6 @@
       - adm
       - systemd-journal
     append: true
+    shell: /bin/bash
     generate_ssh_key: true
     ssh_key_type: ed25519
