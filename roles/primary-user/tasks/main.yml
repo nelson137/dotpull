@@ -3,6 +3,7 @@
   user:
     name: '{{ primary_user }}'
     password: '{{ primary_user_password | password_hash }}'
+    update_password: on_create
     create_home: true
     groups:
       - wheel
