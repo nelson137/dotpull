@@ -39,7 +39,7 @@
 
     - nginx-dotpull-host
 
-    # - nextcloud-server
+    - nginx-nextcloud-server
 
     - nginx-firefly-iii
 
