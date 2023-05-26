@@ -10,6 +10,7 @@
   file:
     path: "/etc/update-motd.d/{{ item }}"
     mode: -x
+  failed_when: false
   loop:
     - 10-help-text
     - 50-motd-news
