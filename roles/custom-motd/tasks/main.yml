@@ -18,3 +18,13 @@
     - 88-esm-announce
     - 91-contract-ua-esm-status
     - 91-release-upgrade
+
+- when: ansible_distribution == 'Ubuntu'
+  become: true
+  block:
+
+    - name: Permanently disable Ubuntu Advantage systemd service (Ubuntu)
+      systemd: name='{{ item }}' state=stopped masked=true
+      loop:
+        - ua-timer.service
+        - ua-timer.timer
