@@ -1,5 +1,5 @@
 #!/bin/sh
 
 printf '\n'
-screenfetch -d '-pkgs,gpu;+disk'
+screenfetch
 printf '\n'
