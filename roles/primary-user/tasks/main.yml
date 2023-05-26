@@ -1,15 +1,26 @@
-- name: Create account
-  become: true
-  user:
-    name: '{{ primary_user }}'
-    password: '{{ primary_user_password | password_hash }}'
-    update_password: on_create
-    create_home: true
-    groups:
-      - wheel
-      - adm
-      - systemd-journal
-    append: true
-    shell: /bin/bash
-    generate_ssh_key: true
-    ssh_key_type: ed25519
+- become: true
+  block:
+
+    - name: Create account
+      user:
+        name: '{{ primary_user }}'
+        password: '{{ primary_user_password | password_hash }}'
+        update_password: on_create
+        create_home: true
+        shell: /bin/bash
+        generate_ssh_key: true
+        ssh_key_type: ed25519
+
+    - name: Add user to groups (Debian)
+      when: ansible_os_family == 'Debian'
+      user:
+        name: '{{ primary_user }}'
+        append: true
+        groups: adm,admin,systemd-journal
+
+    - name: Add user to groups (Amazon)
+      when: ansible_distribution == 'Amazon'
+      user:
+        name: '{{ primary_user }}'
+        append: true
+        groups: adm,systemd-journal,wheel
