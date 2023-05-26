@@ -20,7 +20,7 @@
     # System Setup
     # ==================================================
 
-    # - hostname
+    - hostname
 
     # - custom-motd
     # - custom-motd-screenfetch
