@@ -1,10 +1,14 @@
-- name: Install custom header script
-  become: true
-  copy: src=00-custom-header dest=/etc/update-motd.d/00-custom-header mode=0755
+- become: true
+  block:
 
-- name: Install cron job
-  become: true
-  cron:
-    name: Cache external ip address for motd
-    minute: "*/10"
-    job: dig +short myip.opendns.com @resolver1.opendns.com >/etc/update-motd.d/.external-ip
+    - name: Disable default system info
+      file:
+        path: /etc/update-motd.d/50-landscape-sysinfo
+        mode: -x
+      failed_when: false
+
+    - name: Install art files
+      copy: src=art dest=/etc/update-motd.d/ mode=0755
+
+    - name: Install custom header script
+      copy: src=00-custom-header dest=/etc/update-motd.d/00-custom-header mode=0755
