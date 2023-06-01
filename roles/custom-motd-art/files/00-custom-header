@@ -43,10 +43,10 @@ fetch_info() {
 
 # Credits: https://stackoverflow.com/a/11393884/5673922
 IFS=$'\n' GLOBIGNORE='*' \
-    command eval 'ART_FILES=( $(find art -type f -perm -ugo=x) )'
+    command eval 'ART_FILES=( $(find art -type f) )'
 
 I="$(( ${#ART_FILES[@]} * RANDOM / 32768 ))"
-ART="$("${ART_FILES[$I]}")"
+ART="$(< "${ART_FILES[$I]}")"
 ART_WIDTH="$(width <<< "$ART")"
 
 echo
