@@ -4,6 +4,9 @@
     firefly_docker_compose_path: '{{ firefly_dir }}/docker-compose.yml'
     firefly_host_port: 8081
     firefly_env_path: '{{ firefly_dir }}/.env'
+    firefly_db_database: firefly
+    firefly_db_username: firefly
+    firefly_db_password: '{{ lookup("random_string", length=16, special=False) }}'
   block:
 
     - name: Install dependencies
