@@ -1,4 +1,9 @@
 - become: true
+  vars:
+    nextcloud_db_user: nextcloud
+    nextcloud_db_pass: '{{ lookup("random_string", length=16, special=False) }}'
+    nextcloud_admin_user: admin
+    nextcloud_admin_pass: '{{ lookup("random_string", length=16, special=False) }}'
   block:
 
     - name: Add Ondrej's PHP PPA
