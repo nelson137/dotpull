@@ -6,7 +6,7 @@
 #                        └─ https://github.com/NNBnh
 # URL:                   https://github.com/NNBnh/nnbs-text-art/blob/main/color/icon/monster.textart
 
-printf "
+printf "\
           ,~-.
          (  ' )-.          ,~'\`-.
       ,~' \`  ' ) )       _(   _) )
@@ -24,7 +24,6 @@ printf "
 (_(_.~~~'   \033[97m\\|\033[93m_\033[97m|/\033[0m
             \033[93m[XXX]\033[0m
             \033[93m\`\"\"\"'\033[0m
-
 "
 
 exit 0

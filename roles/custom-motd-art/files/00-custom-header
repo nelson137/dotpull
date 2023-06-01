@@ -49,6 +49,7 @@ I="$(( ${#ART_FILES[@]} * RANDOM / 32768 ))"
 ART="$("${ART_FILES[$I]}")"
 ART_WIDTH="$(width <<< "$ART")"
 
-echo -e "$ART"
-printf '\n'
+echo
+echo "$ART"
+echo
 fetch_info | center "$ART_WIDTH"
