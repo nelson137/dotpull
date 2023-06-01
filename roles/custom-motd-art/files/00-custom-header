@@ -4,38 +4,34 @@ cd -- "$(dirname -- "${BASH_SOURCE[0]}")"
 
 [ -x art ] || exit 0
 
-_AWK_LIB='
-    function strip_ansi(line) {
-        return gensub(/\x1b\[([0-9;]*[mGKHF]|\?[0-9]*[lh]|u|s)/, "", "g", line)
-    }
-'
-_awk() {
-    awk -e "$_AWK_LIB" "$@"
+_python() {
+    python3 -I -c "
+def strip_ansi(line):
+    import re
+    return re.sub(r'\x1b\[([0-9;]*[mGKHF]|\?[0-9]*[lh]|u|s)', '', line)
+$1
+"
 }
 
 width() {
-    local w width=0 old_ifs="$IFS"
-    IFS=''
-    while read -r line; do
-        w="$(wc -m <<< "$line")"
-        (( w > width )) && width="$w"
-    done < <(sed -E 's/\x1b\[([0-9;]*[mGKHF]|\?[0-9]*[lh]|u|s)//g')
-    IFS="$old_ifs"
-    # Changing the IFS results in a lot of extra whitespace from `wc`
-    # Line length includes terminating newline so -1
-    echo "$(( width - 1 ))"
+    _python '
+import sys
+print(max(len(strip_ansi(l.rstrip("\n"))) for l in sys.stdin))
+'
 }
 
 center() {
-    local width="${1:-70}" input input_width offset
+    local width="${1:-70}" input input_width
     input="$(cat)"
     input_width="$(width <<< "$input")"
-    offset=$(( (width - input_width) / 2 ))
-    [[ $offset < 1 ]] && offset=1
-
-    _awk -v offset="$offset" -e '
-        length > 0 { printf "%*s%s\n", offset, " ", $0 }
-    ' <<< "$input"
+    _python "
+import sys
+offset = max(1, ($width - $input_width) // 2)
+for l in sys.stdin:
+    l = l.rstrip('\n')
+    if len(l) > 0:
+        print(' ' * offset, l, sep='')
+" <<< "$input"
 }
 
 fetch_info() {
