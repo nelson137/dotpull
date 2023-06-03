@@ -1,7 +1,13 @@
+- name: Get user info
+  user: name='{{ primary_user }}' state=present
+  register: user_info
+
 - name: Copy ssh key files
+  become: true
+  become_user: '{{ user_info.name }}'
   copy:
     src: "{{ item }}.vault"
-    dest: "{{ ansible_user_dir }}/.ssh/{{ item }}"
+    dest: "{{ user_info.home }}/.ssh/{{ item }}"
     mode: 0600
   loop:
     - id_rsa
