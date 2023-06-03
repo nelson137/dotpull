@@ -14,19 +14,23 @@
   when: oh_my_zsh.stat.exists == false
   become: true
   become_user: '{{ user_info.name }}'
+  vars:
+    omz_installer_path: /tmp/install-ohmyzsh
   block:
 
-    - name: Download install script
+    - name: Download installer
       get_url:
         url: https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh
-        dest: /tmp/install-ohmyzsh
+        dest: '{{ omz_installer_path }}'
         mode: 0755
 
-    - name: Execute install script
+    - name: Execute installer
       command:
-        cmd: /tmp/install-ohmyzsh --unattended
+        cmd: '{{ omz_installer_path }} --unattended'
         creates: '{{ user_info.home }}/.oh-my-zsh'
-      notify: remove install script
+
+    - name: Remove installer
+      file: path='{{ omz_installer_path }}' state=absent
 
 - name: Change user shell to zsh
   become: true
