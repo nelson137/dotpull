@@ -1,4 +1,10 @@
-- vars:
+- name: Get user info
+  user: name='{{ primary_user }}' state=present
+  register: user_info
+
+- become: true
+  become_user: '{{ user_info.name }}'
+  vars:
     dotfiles_repo_url: https://github.com/nelson137/.dot
   block:
 
@@ -7,7 +13,7 @@
         clone: yes
         depth: 1
         repo: '{{ dotfiles_repo_url }}'
-        dest: '{{ ansible_user_dir }}/.dot'
+        dest: '{{ user_info.home }}/.dot'
 
     - name: Install dotfiles
-      command: '{{ ansible_user_dir }}/.dot/deploy.sh'
+      command: '{{ user_info.home }}/.dot/deploy.sh'
