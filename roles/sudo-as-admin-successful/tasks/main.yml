@@ -1,4 +1,8 @@
+- name: Get user info
+  user: name='{{ primary_user }}' state=present
+  register: user_info
+
 - name: Touch ~/.sudo_as_admin_successful
   file:
-    path: "{{ ansible_user_dir }}/.sudo_as_admin_successful"
+    path: "{{ user_info.home }}/.sudo_as_admin_successful"
     state: touch
