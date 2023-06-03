@@ -1,23 +1,13 @@
-- become: true
-  become_user: "{{ user }}"
+- vars:
+    dotfiles_repo_url: https://github.com/nelson137/.dot
   block:
 
     - name: Clone repo
       git:
         clone: yes
         depth: 1
-        repo: https://github.com/nelson137/.dot
-        dest: "{{ ansible_user_dir }}/.dot"
+        repo: '{{ dotfiles_repo_url }}'
+        dest: '{{ ansible_user_dir }}/.dot'
 
     - name: Install dotfiles
-      command: "{{ ansible_user_dir }}/.dot/deploy.sh"
-
-    - name: Install Vundle
-      git:
-        clone: yes
-        depth: 1
-        repo: https://github.com/VundleVim/Vundle.vim
-        dest: "{{ ansible_user_dir }}/.vim/bundle/Vundle.vim"
-
-    - name: Install vim plugins
-      command: vim +PluginInstall +qall
+      command: '{{ ansible_user_dir }}/.dot/deploy.sh'
