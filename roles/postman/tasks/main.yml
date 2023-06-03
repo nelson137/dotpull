@@ -1,8 +1,0 @@
-- name: Install
-  become: true
-  snap: name=postman
-
-- name: Copy desktop file
-  copy:
-    src: Postman.desktop
-    dest: "{{ ansible_user_dir }}/.local/share/applications"
