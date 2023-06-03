@@ -52,7 +52,7 @@
 
     - sudo-as-admin-successful
     - selected-editor
-    - ssh-key
+    - install-ssh-key
     - oh-my-zsh
     - dotfiles
 
