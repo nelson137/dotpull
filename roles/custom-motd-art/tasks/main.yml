@@ -1,6 +1,9 @@
 - become: true
   block:
 
+    - name: Install neofetch
+      apt: name=neofetch state=latest
+
     - name: Disable default system info
       file:
         path: /etc/update-motd.d/50-landscape-sysinfo
