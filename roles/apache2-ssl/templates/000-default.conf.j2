@@ -2,7 +2,6 @@ Header always set Strict-Transport-Security "max-age=31536000; includeSubdomains
 
 <VirtualHost *:80>
 	ServerName {{ domain_name }}
-	ServerAlias www.{{ domain_name }}
 	RewriteEngine on
 	RewriteCond %{HTTP_HOST} ^(www\.)?{{ domain_name | replace('.', '\.') }} [NC]
 	RewriteRule ^.*$ https://{{ domain_name }}%{REQUEST_URI} [L,NE,R=301]
@@ -11,7 +10,6 @@ Header always set Strict-Transport-Security "max-age=31536000; includeSubdomains
 SSLStaplingCache "shmcb:/run/oscp(150000)"
 <VirtualHost *:443>
 	ServerName {{ domain_name }}
-	ServerAlias www.{{ domain_name }}
 
 	RewriteEngine on
 	RewriteCond %{HTTP_HOST} ^www\.{{ domain_name | replace('.', '\.') }} [NC]
