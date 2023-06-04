@@ -49,8 +49,13 @@
 
     - primary-user
 
-    # - user-oh-my-zsh
-    # - user-dotfiles
+    - user-sudo-as-admin-successful
+
+    - user-selected-editor
+
+    - user-oh-my-zsh
+
+    - user-dotfiles
 
     # ==================================================
     # End
