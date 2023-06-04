@@ -14,6 +14,9 @@
         - name: Install apt packages
           apt: name="{{ apt_packages | default([]) }}" state=latest
 
+        - name: Install snap packages
+          snap: name='{{ snap_packages | default([]) }}'
+
     - when: ansible_distribution == "Amazon"
       block:
 
