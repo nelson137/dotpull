@@ -9,13 +9,13 @@
 
         - name: Add apt PPAs
           apt_repository: repo="ppa:{{ item }}"
-          loop: "{{ apt_ppas | default([]) }}"
+          loop: "{{ apt_ppas }}"
 
         - name: Install apt packages
-          apt: name="{{ apt_packages | default([]) }}" state=latest
+          apt: name="{{ apt_packages }}" state=latest
 
         - name: Install snap packages
-          snap: name='{{ snap_packages | default([]) }}'
+          snap: name='{{ snap_packages }}'
 
     - when: ansible_distribution == "Amazon"
       block:
@@ -24,13 +24,13 @@
           command:
             cmd: amazon-linux-extras install -y {{ item.name }}
             creates: "{{ item.creates }}"
-          loop: "{{ amazon_linux_extras_packages | default([]) }}"
+          loop: "{{ amazon_linux_extras_packages }}"
 
     - when: ansible_distribution in ["Amazon", "RedHat"]
       block:
 
         - name: Install yum packages
-          yum: name="{{ yum_packages | default([]) }}" state=latest
+          yum: name="{{ yum_packages }}" state=latest
 
     - name: Install pip packages
-      pip: name='{{ pip_packages | default([]) }}'
+      pip: name='{{ pip_packages }}'
