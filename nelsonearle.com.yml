@@ -8,7 +8,6 @@
     firefly_owner_email: admin@nelsonearle.com
     all_domain_names:
       - '{{ domain_name }}'
-      - 'www.{{ domain_name }}'
       - '{{ nextcloud_domain_name }}'
       - '{{ firefly_domain_name }}'
 
