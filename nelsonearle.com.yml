@@ -12,7 +12,6 @@
       - '{{ nextcloud_domain_name }}'
       - 'www.{{ nextcloud_domain_name }}'
       - '{{ firefly_domain_name }}'
-      - 'www.{{ firefly_domain_name }}'
 
   roles:
 
