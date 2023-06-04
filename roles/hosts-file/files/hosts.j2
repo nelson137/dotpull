@@ -1,10 +1,15 @@
-127.0.0.1 localhost localhost.localdomain localhost4 localhost4.localdomain4
-::1 ip6-localhost ip6-loopback localhost localhost6 localhost6.localdomain6
+# Loopback
+127.0.0.1 localhost localhost4 ip4-localhost ip4-loopback
+::1       localhost localhost6 ip6-localhost ip6-loopback
 
+# Localdomain
+127.0.0.1 localhost4.localdomain4 localhost.localdomain
+::1       localhost6.localdomain6
+
+# Domains
 127.0.0.1 {{ all_domain_names | join(' ') }}
 
-# The following lines are desirable for IPv6 capable hosts
-::1 ip6-localhost ip6-loopback
+# IPv6 utilities
 fe00::0 ip6-localnet
 ff00::0 ip6-mcastprefix
 ff02::1 ip6-allnodes
