@@ -36,6 +36,8 @@
         - vim
         - zip
         - zsh
+      pip_packages:
+        - virtualenv
 
     - nginx-dotpull-host
 
