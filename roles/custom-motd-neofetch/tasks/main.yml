@@ -1,6 +1,6 @@
-- name: Install screenfetch
+- name: Install neofetch
   become: true
-  apt: name=screenfetch state=latest
+  apt: name=neofetch state=latest
 
 - name: Install custom header script
   become: true

@@ -48,7 +48,7 @@
     - nextcloud-server
 
     - custom-motd
-    - custom-motd-screenfetch
+    - custom-motd-neofetch
 
     - sudo-as-admin-successful
     - selected-editor

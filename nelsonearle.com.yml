@@ -23,7 +23,7 @@
     - hostname
 
     # - custom-motd
-    # - custom-motd-screenfetch
+    # - custom-motd-neofetch
 
     - role: install-packages
       apt_packages:

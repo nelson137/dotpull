@@ -1,5 +1,5 @@
 #!/bin/sh
 
 printf '\n'
-screenfetch
+neofetch --no_config
 printf '\n'
