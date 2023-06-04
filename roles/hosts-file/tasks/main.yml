@@ -3,7 +3,7 @@
   template: src=hosts.j2 dest=/etc/hosts
 
 - name: Detect cloud-init
-  stat: path=/etc/cloud/cloud.cfg get_checksum=false
+  stat: path=/etc/cloud/cloud.cfg get_checksum=false get_mime=false
   register: cloud_cfg
 
 - name: Prevent cloud-init from modifying hostname
