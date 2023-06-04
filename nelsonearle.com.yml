@@ -22,8 +22,8 @@
 
     - hostname
 
-    # - custom-motd
-    # - custom-motd-neofetch
+    - custom-motd
+    - custom-motd-neofetch
 
     - role: install-packages
       apt_packages:
