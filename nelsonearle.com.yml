@@ -21,6 +21,7 @@
     # ==================================================
 
     - hostname
+    - hosts-file
 
     - custom-motd
     - custom-motd-neofetch
