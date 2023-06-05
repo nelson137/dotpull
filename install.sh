@@ -368,17 +368,6 @@ main() {
     # Install script dependencies
     install_packages curl git
 
-    get_playbook_list
-
-    # Validate the given playbook or have user choose one
-    if [ -n "$PLAYBOOK_CHOICE" ]; then
-        validate_playbook "$PLAYBOOK_CHOICE" "${PLAYBOOKS[@]}"
-    else
-        printf '\n'
-        select_playbook "${PLAYBOOKS[@]}" || return 0
-        printf '\n'
-    fi
-
     # Make sure the python2 docker-py package isn't installed,
     # it conflicts with the python3 package
     pip2_uninstall docker-py
@@ -392,6 +381,17 @@ main() {
     # Install ansible & its python dependencies
     pip3_upgrade
     pip3_install ansible
+
+    get_playbook_list
+
+    # Validate the given playbook or have user choose one
+    if [ -n "$PLAYBOOK_CHOICE" ]; then
+        validate_playbook "$PLAYBOOK_CHOICE" "${PLAYBOOKS[@]}"
+    else
+        printf '\n'
+        select_playbook "${PLAYBOOKS[@]}" || return 0
+        printf '\n'
+    fi
 
     local title="Executing playbook: $PLAYBOOK_CHOICE"
     printf "\n${GREEN}${BOLD}"
