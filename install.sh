@@ -95,11 +95,11 @@ start_spinner() {
     [ -n "$SPINNER_PID" ] && return
 
     info "$@"
+    tput sc
 
     local i
     while true; do
         for (( i=0; i<${#SPINNER}; i++ )); do
-            tput sc
             # Must use '--' because `printf '- '` is an error,
             # it thinks the '-' is part of a flag
             printf -- "... ${SPINNER:$i:1} "
