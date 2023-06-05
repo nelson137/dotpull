@@ -391,7 +391,7 @@ main() {
     ANSIBLE_DEPRECATION_WARNINGS=false \
     ANSIBLE_REMOTE_TMP=/tmp \
     ansible-pull -U "$REPO_URL" --purge "$PLAYBOOK_CHOICE" \
-        --vault-id=@prompt -c local -i localhost, \
+        --vault-id=@prompt -c local -i localhost, -l localhost \
         </dev/tty
     #   ~~~~~~~~~
     #   ^ Fix stdin for ansible
