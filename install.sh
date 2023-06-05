@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -eo pipefail
 
 if [ "$EUID" -ne 0 ]; then
     echo 'error: must be run as root' >&2
