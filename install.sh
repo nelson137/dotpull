@@ -343,11 +343,6 @@ usage() {
     exit "${1:-0}"
 }
 
-INVENTORY_URL="https://raw.githubusercontent.com/$REPO/master/inventory.ini"
-TEMP_INVENTORY_FILE='/tmp/inventory.ini'
-
-_cleanup_inventory_file() { rm -f "$TEMP_INVENTORY_FILE"; }
-
 main() {
     while [ $# -gt 0 ]; do
         case "$1" in
@@ -389,9 +384,6 @@ main() {
     echo "  ▐▙▄$(printf "▄%.0s" $(seq ${#title}))▄▟▌"
     printf "${RESET}\n"
 
-    curl -sSL "$INVENTORY_URL" -o "$TEMP_INVENTORY_FILE"
-    _trap_set _cleanup_inventory_file
-
     ANSIBLE_PYTHON_INTERPRETER="$(which python3)" \
     ANSIBLE_NOCOWS=true \
     ANSIBLE_FORCE_COLOR=true \
@@ -399,7 +391,7 @@ main() {
     ANSIBLE_DEPRECATION_WARNINGS=false \
     ANSIBLE_REMOTE_TMP=/tmp \
     ansible-pull -U "$REPO_URL" --purge "$PLAYBOOK_CHOICE" \
-        --vault-id=@prompt -i "$TEMP_INVENTORY_FILE" -c local \
+        --vault-id=@prompt -c local -i localhost, \
         </dev/tty
     #   ~~~~~~~~~
     #   ^ Fix stdin for ansible
@@ -409,9 +401,6 @@ main() {
     # `read`) or in ansible (e.g. with `vars_promp`). This is fixed by
     # redirecting the tty (`/dev/tty`) of this process to stdin of the process
     # that needs it.
-
-    _cleanup_inventory_file
-    _trap_del _cleanup_inventory_file
 }
 
 # endregion
