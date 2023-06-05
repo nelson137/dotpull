@@ -84,12 +84,7 @@ _quiet_kill() {
     wait "$@" &>/dev/null || true
 }
 
-_cleanup_spinner() {
-    _quiet_kill "$SPINNER_PID"
-    tput rc
-}
-
-_trap_cleanup_spinner() { _cleanup_spinner; echo; }
+_trap_cleanup_spinner() { _quiet_kill "$SPINNER_PID"; echo; }
 
 start_spinner() {
     [ -n "$SPINNER_PID" ] && return
@@ -115,8 +110,9 @@ start_spinner() {
 stop_spinner() {
     local status="${1:- $CHECK_MARK}"
     _trap_del _trap_cleanup_spinner
-    _cleanup_spinner
+    _quiet_kill "$SPINNER_PID"
     SPINNER_PID=
+    tput rc
     printf '\e[0K%s\n' "$status"
 }
 
@@ -169,7 +165,7 @@ github_api() {
 
 _get_playbooks_from_head() {
     local head_sha
-    head_sha="$(github_api /commits | _python 'import json,sys; print(json.loads(sys.stdin.read())[0]["commit"]["tree"]["sha"])')"
+    head_sha="$(github_api /commits | _python 'import json,sys; print(json.loads(sys.stdin.read())[0]["commit"]["tree"]["sha"])')" || return
 
     github_api "/git/trees/$head_sha" | _python '
 import json,sys
@@ -200,10 +196,11 @@ get_os_info() {
 
 get_playbook_list() {
     start_spinner github 'Getting list of playbooks from HEAD of master/origin'
-    local name
+    local playbooks name
+    playbooks="$(_get_playbooks_from_head 2>&1)" || err "$playbooks"
     while read name; do
         PLAYBOOKS+=( "$name" )
-    done < <(_get_playbooks_from_head)
+    done <<< "$playbooks"
     stop_spinner
 }
 
