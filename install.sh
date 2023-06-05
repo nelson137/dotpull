@@ -150,7 +150,7 @@ _API_URL="https://api.github.com/repos/$REPO"
 
 _GH_API_HEADER=
 
-_cleanup_gh_api_header() { rm -f "$_GH_API_HEADER"; }
+_cleanup_gh_api_header() { rm -f "$_GH_API_HEADER"; unset _GH_API_HEADER; }
 
 github_api() {
     local response
@@ -168,7 +168,6 @@ github_api() {
         exit 1
     fi
     _cleanup_gh_api_header
-    _GH_API_HEADER=
     _trap_del _cleanup_gh_api_header
     echo "$response"
 }
