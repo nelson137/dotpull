@@ -227,7 +227,7 @@ validate_playbook() {
     err "playbook must be one of: ${playbooks[@]}"
 }
 
-_cleanup_color_prompt() { echo "$RESET"; }
+_cleanup_color_prompt() { printf -- "$RESET\n" >&2; }
 
 select_playbook() {
     local i selection
