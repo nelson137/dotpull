@@ -17,11 +17,13 @@ REPO='nelson137/dotpull'
 REPO_URL="https://github.com/$REPO"
 
 BOLD="$(tput bold)"
+RED="$(tput setaf 1)"
 GREEN="$(tput setaf 2)"
 YELLOW="$(tput setaf 3)"
 RESET="$(tput sgr0)"
 
 CHECK_MARK="${BOLD}${GREEN}✓${RESET}"
+X_MARK="${BOLD}${RED}✘${RESET}"
 
 ##################################################
 # TRAPS
@@ -50,7 +52,7 @@ _trap_del() { unset _TRAP_HANDLERS["$1"]; }
 # region logging
 
 err() {
-    [ -n "$SPINNER_PID" ] && stop_spinner
+    [ -n "$SPINNER_PID" ] && stop_spinner " $X_MARK"
     echo "error: $*" >&2
     exit 1
 }
@@ -92,13 +94,15 @@ _trap_cleanup_spinner() { _cleanup_spinner; echo; }
 start_spinner() {
     [ -n "$SPINNER_PID" ] && return
 
+    info "$@"
+
     local i
     while true; do
         for (( i=0; i<${#SPINNER}; i++ )); do
             tput sc
             # Must use '--' because `printf '- '` is an error,
             # it thinks the '-' is part of a flag
-            printf -- "${*}${SPINNER:$i:1} "
+            printf -- "... ${SPINNER:$i:1} "
             sleep .15
             tput rc
         done
@@ -109,10 +113,11 @@ start_spinner() {
 }
 
 stop_spinner() {
+    local status="${1:- $CHECK_MARK}"
     _trap_del _trap_cleanup_spinner
     _cleanup_spinner
     SPINNER_PID=
-    printf '\e[0K%s\n' "$*"
+    printf '\e[0K%s\n' "$status"
 }
 
 # endregion
@@ -194,13 +199,12 @@ get_os_info() {
 }
 
 get_playbook_list() {
-    info github 'Getting list of playbooks from HEAD of master/origin ... '
-    start_spinner
+    start_spinner github 'Getting list of playbooks from HEAD of master/origin'
     local name
     while read name; do
         PLAYBOOKS+=( "$name" )
     done < <(_get_playbooks_from_head)
-    stop_spinner "$CHECK_MARK"
+    stop_spinner
 }
 
 validate_playbook() {
@@ -251,27 +255,24 @@ install_packages() {
 }
 
 apt_install() {
-    info apt 'Updating package index ... '
-    start_spinner
+    start_spinner apt 'Updating package index'
     if ! apt update -y &>/dev/null; then
         err "apt: unable to update"
     fi
-    stop_spinner "$CHECK_MARK"
+    stop_spinner
 
     local pkg
     for pkg in "$@"; do
-        info apt "Checking for package $pkg ... "
-        start_spinner
+        start_spinner apt "Checking for package $pkg"
         if dpkg -s "$pkg" &>/dev/null; then
-            stop_spinner "$CHECK_MARK"
+            stop_spinner
         else
-            stop_spinner 'not installed'
-            info apt "Installing $pkg ... "
-            start_spinner
+            stop_spinner '... not installed'
+            start_spinner apt "Installing $pkg"
             if ! apt install -y "$pkg" &>/dev/null; then
                 err "apt: unable to install package: $pkg"
             fi
-            stop_spinner "$CHECK_MARK"
+            stop_spinner
         fi
     done
 }
@@ -279,18 +280,16 @@ apt_install() {
 yum_install() {
     local pkg
     for pkg in "$@"; do
-        info yum "Checking for package $pkg ... "
-        start_spinner
+        start_spinner yum "Checking for package $pkg"
         if rpm -q "$pkg" &>/dev/null; then
-            stop_spinner "$CHECK_MARK"
+            stop_spinner
         else
-            stop_spinner 'not installed'
-            info yum "Installing $pkg ... "
-            start_spinner
+            stop_spinner '... not installed'
+            start_spinner yum "Installing $pkg"
             if ! yum install -y "$pkg" &>/dev/null; then
                 err "yum: unable to install package: $pkg"
             fi
-            stop_spinner "$CHECK_MARK"
+            stop_spinner
         fi
     done
 }
@@ -301,12 +300,11 @@ pip2_uninstall() {
     local pkg
     for pkg in "$@"; do
         if _pip2 show "$pkg"; then
-            info pip2 "Uninstalling $pkg ... "
-            start_spinner
+            start_spinner pip2 "Uninstalling $pkg"
             if ! _pip2 uninstall "$pkg"; then
                 err "pip2: unable to uninstall package: $pkg"
             fi
-            stop_spinner "$CHECK_MARK"
+            stop_spinner
         fi
     done
 }
@@ -314,29 +312,26 @@ pip2_uninstall() {
 _pip3() { python3 -m pip "$@" &>/dev/null; }
 
 pip3_upgrade() {
-    info pip3 'Upgrading pip ... '
-    start_spinner
+    start_spinner pip3 'Upgrading pip'
     if ! _pip3 install --upgrade pip; then
         err "pip3: unable to upgrade pip"
     fi
-    stop_spinner "$CHECK_MARK"
+    stop_spinner
 }
 
 pip3_install() {
     local pkg
     for pkg in "$@"; do
-        info pip3 "Checking for package $pkg ... "
-        start_spinner
+        start_spinner pip3 "Checking for package $pkg"
         if _pip3 show "$pkg"; then
-            stop_spinner "$CHECK_MARK"
+            stop_spinner
         else
-            stop_spinner 'not installed'
-            info pip3 "Installing $pkg ... "
-            start_spinner
+            stop_spinner '... not installed'
+            start_spinner pip3 "Installing $pkg"
             if ! _pip3 install "$pkg"; then
                 err "pip3: unable to install package: $pkg"
             fi
-            stop_spinner "$CHECK_MARK"
+            stop_spinner
         fi
     done
 }
