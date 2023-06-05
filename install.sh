@@ -294,21 +294,6 @@ yum_install() {
     done
 }
 
-_pip2() { python2 -m pip "$@" &>/dev/null; }
-
-pip2_uninstall() {
-    local pkg
-    for pkg in "$@"; do
-        if _pip2 show "$pkg"; then
-            start_spinner pip2 "Uninstalling $pkg"
-            if ! _pip2 uninstall "$pkg"; then
-                err "pip2: unable to uninstall package: $pkg"
-            fi
-            stop_spinner
-        fi
-    done
-}
-
 _pip3() { python3 -m pip "$@" &>/dev/null; }
 
 pip3_upgrade() {
@@ -372,12 +357,6 @@ main() {
 
     # Install package dependencies
     install_packages "${packages[@]}"
-
-    if which python2 &>/dev/null; then
-        # Make sure the python2 docker-py package isn't installed,
-        # it conflicts with the python3 package
-        pip2_uninstall docker-py
-    fi
 
     # Install ansible & its python dependencies
     pip3_upgrade
