@@ -31,17 +31,27 @@ X_MARK="${BOLD}${RED}✘${RESET}"
 
 # region traps
 
-declare -A _TRAP_HANDLERS
+declare -a _TRAP_HANDLERS
 
 _handle_trap() {
-    for handler in "${!_TRAP_HANDLERS[@]}"; do "$handler"; done
+    for handler in "${_TRAP_HANDLERS[@]}"; do "$handler"; done
     exit 1
 }
 
 trap _handle_trap HUP INT QUIT ABRT KILL PIPE TERM
 
-_trap_set() { _TRAP_HANDLERS["$1"]=''; }
-_trap_del() { unset _TRAP_HANDLERS["$1"]; }
+_trap_set() { _TRAP_HANDLERS+=( "$1" ); }
+
+_trap_del() {
+    local handler="$1"
+    local -a new_handlers
+    set -- "${_TRAP_HANDLERS[@]}"
+    while (( $# > 0 )); do
+        [ "$1" = "$handler" ] || new_handlers+=( "$1" )
+        shift
+    done
+    _TRAP_HANDLERS=( "${new_handlers[@]}" )
+}
 
 # endregion
 
