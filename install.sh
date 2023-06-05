@@ -125,7 +125,7 @@ stop_spinner() {
 # region utils
 
 _python() {
-    python -c 'from __future__ import print_function;'"$*"
+    python3 -c "$*"
 }
 
 # endregion utils
@@ -171,7 +171,10 @@ _get_playbooks_from_head() {
 import json,sys
 is_yml = lambda p: p.endswith(".yml") or p.endswith(".yaml")
 data = json.loads(sys.stdin.read())
-[print(x["path"]) for x in data["tree"] if is_yml(x["path"])]'
+for x in data["tree"]:
+    p = x["path"]
+    if is_yml(p): print(p)
+'
 }
 
 # endregion
