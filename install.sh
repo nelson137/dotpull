@@ -409,6 +409,9 @@ main() {
     # `read`) or in ansible (e.g. with `vars_promp`). This is fixed by
     # redirecting the tty (`/dev/tty`) of this process to stdin of the process
     # that needs it.
+
+    _cleanup_inventory_file
+    _trap_del _cleanup_inventory_file
 }
 
 # endregion
