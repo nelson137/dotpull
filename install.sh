@@ -363,22 +363,21 @@ main() {
         shift
     done
 
-    get_os_info
+    local -a packages=(curl git gnupg2)
 
-    # Install script dependencies
-    install_packages curl git
+    get_os_info
+    case "$OS_ID_LIKE" in
+        *debian*) packages+=(python3 python3-pip python3-apt) ;;
+    esac
+
+    # Install package dependencies
+    install_packages "${packages[@]}"
 
     if which python2 &>/dev/null; then
         # Make sure the python2 docker-py package isn't installed,
         # it conflicts with the python3 package
         pip2_uninstall docker-py
     fi
-
-    # Install ansible dependencies
-    install_packages gnupg2
-    case "$OS_ID_LIKE" in
-        *debian*) apt_install python3 python3-pip python3-apt ;;
-    esac
 
     # Install ansible & its python dependencies
     pip3_upgrade
