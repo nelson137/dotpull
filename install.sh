@@ -368,9 +368,11 @@ main() {
     # Install script dependencies
     install_packages curl git
 
-    # Make sure the python2 docker-py package isn't installed,
-    # it conflicts with the python3 package
-    pip2_uninstall docker-py
+    if which python2 &>/dev/null; then
+        # Make sure the python2 docker-py package isn't installed,
+        # it conflicts with the python3 package
+        pip2_uninstall docker-py
+    fi
 
     # Install ansible dependencies
     install_packages gnupg2
