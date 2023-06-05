@@ -395,7 +395,7 @@ main() {
 
     ANSIBLE_PYTHON_INTERPRETER="$(which python3)" \
     ANSIBLE_NOCOWS=true \
-    ANSIBLE_NOCOLOR=false \
+    ANSIBLE_FORCE_COLOR=true \
     ANSIBLE_RETRY_FILES_ENABLED=false \
     ANSIBLE_DEPRECATION_WARNINGS=false \
     ANSIBLE_REMOTE_TMP=/tmp \
