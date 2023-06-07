@@ -36,6 +36,21 @@
           - php8.2-xml
           - php8.2-zip
 
+    - when: ansible_os_family == 'Debian'
+      block:
+
+        - name: Configure MariaDB bind address (Debian)
+          lineinfile:
+            path: /etc/mysql/mariadb.conf.d/50-server.cnf
+            backrefs: true
+            regexp: ^(\s*bind-address\s*=\s*)\d+(\.\d+){3}
+            line: \g<1>0.0.0.0
+          register: mariadb_config_bind_addr
+
+        - name: Restart MariaDB server
+          when: mariadb_config_bind_addr.changed
+          service: name=mariadb state=restarted
+
     - name: Check if already installed
       stat: path=/var/www/nextcloud get_checksum=false get_mime=false
       register: nextcloud_dir
