@@ -1,5 +1,6 @@
 - become: true
   vars:
+    nextcloud_db: nextcloud
     nextcloud_db_user: nextcloud
     nextcloud_db_pass: '{{ lookup("random_string", length=16, special=False) }}'
     nextcloud_admin_user: admin
@@ -112,20 +113,26 @@
     - name: Copy MariaDB config
       copy: src=60-nextcloud.cnf dest=/etc/mysql/mariadb.conf.d/60-nextcloud.cnf
 
-    - name: Check if MySQL database already setup
-      shell: mysql -sNe 'USE nextcloud; SELECT @@character_set_database,@@collation_database' | grep -Pq 'utf8mb4\tutf8mb4_general_ci'
-      register: nc_db_is_setup
-      failed_when: false
+    - name: Check if database exists
+      command: mysql -sse "SELECT COUNT(*) FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '{{ nextcloud_db }}'"
+      register: db_exists
       changed_when: false
 
-    - when: nc_db_is_setup.rc != 0
-      block:
+    - name: Create database
+      when: db_exists.stdout == '0'
+      command: mysql -e "CREATE DATABASE `{{ nextcloud_db }}` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci"
 
-        - name: Delete any existing database
-          command: mysql -e 'DROP DATABASE IF EXISTS nextcloud'
+    - name: Check if database user exists
+      command: mysql -sse "SELECT COUNT(*) FROM mysql.user WHERE User = '{{ nextcloud_db_user }}'"
+      register: db_user_exists
+      changed_when: false
 
-        - name: Setup MySQL database
-          command: mysql -e "CREATE DATABASE nextcloud CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci; CREATE USER IF NOT EXISTS '{{ nextcloud_db_user }}'@'localhost' IDENTIFIED BY '{{ nextcloud_db_pass }}'; GRANT ALL PRIVILEGES ON nextcloud.* TO '{{ nextcloud_db_user }}'@'localhost' IDENTIFIED BY '{{ nextcloud_db_pass }}'; FLUSH PRIVILEGES"
+    - name: Create database user & grant privileges
+      when: db_user_exists.stdout == '0'
+      command: mysql -e "
+        GRANT ALL PRIVILEGES ON `{{ nextcloud_db }}`.* TO '{{ nextcloud_db_user }}'@'%' IDENTIFIED BY '{{ nextcloud_db_pass }}';
+        FLUSH PRIVILEGES;
+        "
 
     - name: Get installation status
       become_user: www-data
@@ -136,7 +143,7 @@
     - name: Install
       when: nc_install_status.stderr.startswith('Nextcloud is not installed')
       become_user: www-data
-      command: php /var/www/nextcloud/occ maintenance:install --database mysql --database-name nextcloud --database-user "{{ nextcloud_db_user }}" --database-pass "{{ nextcloud_db_pass }}" --admin-user "{{ nextcloud_admin_user }}" --admin-pass "{{ nextcloud_admin_pass }}"
+      command: php /var/www/nextcloud/occ maintenance:install --database mysql --database-name '{{ nextcloud_db }}' --database-user '{{ nextcloud_db_user }}' --database-pass '{{ nextcloud_db_pass }}' --admin-user '{{ nextcloud_admin_user }}' --admin-pass '{{ nextcloud_admin_pass }}'
 
     - name: Add trusted domain to config
       lineinfile:
