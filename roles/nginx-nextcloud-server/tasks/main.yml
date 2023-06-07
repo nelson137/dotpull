@@ -2,9 +2,9 @@
   vars:
     nextcloud_db: nextcloud
     nextcloud_db_user: nextcloud
-    nextcloud_db_pass: '{{ lookup("random_string", length=16, special=False) }}'
+    nextcloud_db_pass: '{{ lookup("idempotent_secret", "nextcloud_db_pass") }}'
     nextcloud_admin_user: admin
-    nextcloud_admin_pass: '{{ lookup("random_string", length=16, special=False) }}'
+    nextcloud_admin_pass: '{{ lookup("idempotent_secret", "nextcloud_admin_pass") }}'
   block:
 
     - name: Add Ondrej's PHP PPA

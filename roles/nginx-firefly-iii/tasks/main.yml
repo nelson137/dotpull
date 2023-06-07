@@ -6,7 +6,7 @@
     firefly_env_path: '{{ firefly_dir }}/.env'
     firefly_db_database: firefly
     firefly_db_username: firefly
-    firefly_db_password: '{{ lookup("random_string", length=16, special=False) }}'
+    firefly_db_password: '{{ lookup("idempotent_secret", "firefly_db_password") }}'
   block:
 
     - name: Install dependencies
@@ -65,7 +65,7 @@
     - name: Install environment file
       template: src=env.j2 dest='{{ firefly_env_path }}' force=false
       vars:
-        firefly_app_key: '{{ lookup("random_string", length=32, special=False) }}'
+        firefly_app_key: '{{ lookup("idempotent_secret", "firefly_app_key", length=32) }}'
         firefly_db_host: '{{ docker_host_ip.stdout }}'
 
     - name: List running Docker Compose projects
