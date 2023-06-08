@@ -343,6 +343,10 @@ usage() {
     exit "${1:-0}"
 }
 
+ANSIBLE_HOME=/tmp/ansible
+
+_cleanup_ansible_home() { rm -rf "$ANSIBLE_HOME"; }
+
 main() {
     while [ $# -gt 0 ]; do
         case "$1" in
@@ -384,11 +388,14 @@ main() {
     echo "  ▐▙▄$(printf "▄%.0s" $(seq ${#title}))▄▟▌"
     printf "${RESET}\n"
 
+    _trap_set _cleanup_ansible_home
+
     ANSIBLE_PYTHON_INTERPRETER="$(which python3)" \
     ANSIBLE_NOCOWS=true \
     ANSIBLE_FORCE_COLOR=true \
     ANSIBLE_RETRY_FILES_ENABLED=false \
     ANSIBLE_DEPRECATION_WARNINGS=false \
+    ANSIBLE_HOME="$ANSIBLE_HOME" \
     ANSIBLE_REMOTE_TMP=/tmp \
     ansible-pull -U "$REPO_URL" --purge "$PLAYBOOK_CHOICE" \
         --vault-id=@prompt -c local -i localhost, -l localhost \
@@ -401,6 +408,9 @@ main() {
     # `read`) or in ansible (e.g. with `vars_promp`). This is fixed by
     # redirecting the tty (`/dev/tty`) of this process to stdin of the process
     # that needs it.
+
+    _cleanup_ansible_home
+    _trap_del _cleanup_ansible_home
 }
 
 # endregion
