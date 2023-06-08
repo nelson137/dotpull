@@ -108,7 +108,11 @@
         state: link
         path: '/etc/nginx/sites-enabled/{{ nextcloud_domain_name }}'
         src: '../sites-available/{{ nextcloud_domain_name }}'
-      notify: reload nginx
+      register: nc_install_site_config
+
+    - name: reload nginx
+      when: nc_install_site_config.changed
+      service: name=nginx state=reloaded
 
     - name: Copy MariaDB config
       copy: src=60-nextcloud.cnf dest=/etc/mysql/mariadb.conf.d/60-nextcloud.cnf
@@ -156,14 +160,19 @@
         path: /var/www/nextcloud/config/config.php
         regexp: "  'overwrite\\.cli\\.url' => 'http://localhost',"
         line: "  'overwrite.cli.url' => 'https://{{ nextcloud_domain_name }}',"
-      notify: update nextcloud htaccess
+      register: nc_config_rewrite_url
 
     - name: Add htaccess RewriteBase to config
       lineinfile:
         path: /var/www/nextcloud/config/config.php
         insertafter: 'overwrite.cli.url'
         line: "  'htaccess.RewriteBase' => '/',"
-      notify: update nextcloud htaccess
+      register: nc_config_rewrite_base
+
+    - name: update nextcloud htaccess
+      when: nc_config_rewrite_url.changed or nc_config_rewrite_base.changed
+      become_user: www-data
+      command: php /var/www/nextcloud/occ maintenance:update:htaccess
 
     - name: Enable MySQL utf8mb4 charset in config
       lineinfile:
@@ -183,4 +192,7 @@
         - Documents/Nextcloud flyer.pdf
         - Documents/Readme.md
         - Photos
-      notify: reindex nextcloud files
+
+    - name: reindex nextcloud files
+      become_user: www-data
+      command: php /var/www/nextcloud/occ files:scan "{{ nextcloud_admin_user }}"
