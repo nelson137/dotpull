@@ -13,6 +13,7 @@
 
     - name: Wait for daily updates to finish (Debian)
       command: 'systemctl show -P ActiveState {{ item }}'
+      changed_when: false
       register: apt_daily_state
       until: apt_daily_state.stdout == 'inactive'
       retries: 100
