@@ -344,6 +344,7 @@ usage() {
 }
 
 ANSIBLE_HOME=/tmp/ansible
+ANSIBLE_REMOTE_TEMP="$ANSIBLE_HOME/tmp"
 
 _cleanup_ansible_home() { rm -rf "$ANSIBLE_HOME"; }
 
@@ -396,7 +397,7 @@ main() {
     ANSIBLE_RETRY_FILES_ENABLED=false \
     ANSIBLE_DEPRECATION_WARNINGS=false \
     ANSIBLE_HOME="$ANSIBLE_HOME" \
-    ANSIBLE_REMOTE_TMP=/tmp \
+    ANSIBLE_REMOTE_TMP="$ANSIBLE_REMOTE_TEMP" \
     ansible-pull -U "$REPO_URL" --purge "$PLAYBOOK_CHOICE" \
         --vault-id=@prompt -c local -i localhost, -l localhost \
         </dev/tty
