@@ -2,7 +2,7 @@
   when: ansible_os_family == 'Debian'
   block:
 
-    - name: Start unattended upgrades (Debian)
+    - name: Start unattended upgrades service (Debian)
       systemd: state=started name=unattended-upgrades.service
 
     - name: Enable Apt daily timers (Debian)

@@ -2,7 +2,7 @@
   when: ansible_os_family == 'Debian'
   block:
 
-    - name: Stop unattended upgrades (Debian)
+    - name: Stop unattended upgrades service (Debian)
       systemd: state=stopped name=unattended-upgrades.service
 
     - name: Disable Apt daily timers (Debian)
@@ -11,7 +11,7 @@
         - apt-daily.timer
         - apt-daily-upgrade.timer
 
-    - name: Wait for daily updates to finish (Debian)
+    - name: Wait for Apt daily updates to finish (Debian)
       command: 'systemctl show -P ActiveState {{ item }}'
       changed_when: false
       register: apt_daily_state
