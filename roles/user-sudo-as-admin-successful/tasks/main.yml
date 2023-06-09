@@ -3,6 +3,8 @@
   register: user_info
 
 - name: Touch ~/.sudo_as_admin_successful
+  become: true
+  become_user: '{{ user_info.name }}'
   file:
     path: "{{ user_info.home }}/.sudo_as_admin_successful"
     state: touch
