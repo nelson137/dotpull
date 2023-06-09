@@ -6,3 +6,5 @@
   file:
     path: "{{ user_info.home }}/.sudo_as_admin_successful"
     state: touch
+    access_time: preserve
+    modification_time: preserve
