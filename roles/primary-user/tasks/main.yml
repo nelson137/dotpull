@@ -5,7 +5,6 @@
       user:
         name: '{{ primary_user }}'
         create_home: true
-        shell: /bin/bash
         generate_ssh_key: true
         ssh_key_type: ed25519
 
