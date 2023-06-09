@@ -344,7 +344,7 @@ usage() {
 }
 
 ANSIBLE_HOME=/tmp/ansible
-ANSIBLE_REMOTE_TEMP="$ANSIBLE_HOME/tmp"
+ANSIBLE_REMOTE_TEMP=/tmp/ansible-remote/tmp
 
 _cleanup_ansible_home() { rm -rf "$ANSIBLE_HOME"; }
 
