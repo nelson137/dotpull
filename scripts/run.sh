@@ -2,6 +2,10 @@
 
 set -eo pipefail
 
+if [ ! "$EUID" = 0 ]; then
+    exec sudo "$0" "$@"
+fi
+
 declare USE_VENV PLAYBOOK
 declare -a ANSIBLE_ARGS
 
@@ -29,8 +33,8 @@ python_venv_installed() {
 
 if [ -n "$USE_VENV" ]; then
     if !python_venv_installed; then
-        sudo apt update
-        sudo apt install -y --no-install-recommends python3.10-venv
+        apt update
+        apt install -y --no-install-recommends python3.10-venv
     fi
 
     VENV='/tmp/venv'
@@ -45,8 +49,8 @@ if [ -n "$USE_VENV" ]; then
 fi
 
 ANSIBLE_REMOTE_TEMP=/tmp/ansible-remote/tmp
-sudo mkdir -p "$ANSIBLE_REMOTE_TEMP"
-sudo chmod -R 0777 "$ANSIBLE_REMOTE_TEMP"
+mkdir -p "$ANSIBLE_REMOTE_TEMP"
+chmod -R 0777 "$ANSIBLE_REMOTE_TEMP"
 
 ANSIBLE_PYTHON_INTERPRETER="$(which python3)" \
 ANSIBLE_NOCOWS=true \
