@@ -28,7 +28,7 @@
       notify: reload nginx
 
     - name: Generate Diffie-Hellman parameters
-      openssl_dhparam: size=4096 path=/etc/ssl/certs/dhparam.pem
+      openssl_dhparam: size=2048 path=/etc/ssl/certs/dhparam.pem
 
     - name: Create Lets Encrypt working directory
       file: path='{{ le_dir }}' state=directory
