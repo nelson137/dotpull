@@ -346,7 +346,16 @@ usage() {
 ANSIBLE_HOME=/tmp/ansible
 ANSIBLE_REMOTE_TEMP=/tmp/ansible-remote/tmp
 
-_cleanup_ansible_home() { rm -rf "$ANSIBLE_HOME"; }
+_setup_ansible_dirs() {
+    # When the remote temporary directory does not exist Ansible will create it
+    # with mode `0700`. This is a problem when a task specifies a non-root
+    # `become_user` as they will not have access to it. Create the dir before
+    # Ansible runs to ensure it has the appropriate permissions.
+    mkdir -p "$ANSIBLE_REMOTE_TEMP"
+    chmod -R 0777 "$ANSIBLE_REMOTE_TEMP"
+}
+
+_cleanup_ansible_dirs() { rm -rf "$ANSIBLE_HOME" "$ANSIBLE_REMOTE_TEMP"; }
 
 main() {
     while [ $# -gt 0 ]; do
@@ -389,7 +398,8 @@ main() {
     echo "  ▐▙▄$(printf "▄%.0s" $(seq ${#title}))▄▟▌"
     printf "${RESET}\n"
 
-    _trap_set _cleanup_ansible_home
+    _setup_ansible_dirs
+    _trap_set _cleanup_ansible_dirs
 
     ANSIBLE_PYTHON_INTERPRETER="$(which python3)" \
     ANSIBLE_NOCOWS=true \
@@ -410,8 +420,8 @@ main() {
     # redirecting the tty (`/dev/tty`) of this process to stdin of the process
     # that needs it.
 
-    _cleanup_ansible_home
-    _trap_del _cleanup_ansible_home
+    _cleanup_ansible_dirs
+    _trap_del _cleanup_ansible_dirs
 }
 
 # endregion
