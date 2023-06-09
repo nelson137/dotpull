@@ -19,13 +19,17 @@ else
     pip3 install ansible
 fi
 
+ANSIBLE_REMOTE_TEMP=/tmp/ansible-remote/tmp
+sudo mkdir -p "$ANSIBLE_REMOTE_TEMP"
+sudo chmod -R 0777 "$ANSIBLE_REMOTE_TEMP"
+
 ANSIBLE_PYTHON_INTERPRETER="$(which python3)" \
 ANSIBLE_NOCOWS=true \
 ANSIBLE_NOCOLOR=false \
 ANSIBLE_RETRY_FILES_ENABLED=false \
 ANSIBLE_DEPRECATION_WARNINGS=false \
 ANSIBLE_HOME=/tmp/ansible \
-ANSIBLE_REMOTE_TMP=/tmp/ansible-remote/tmp \
+ANSIBLE_REMOTE_TMP="$ANSIBLE_REMOTE_TEMP" \
 ansible-playbook \
     -c local -i localhost, -l localhost \
     "$PLAYBOOK" \
