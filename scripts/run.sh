@@ -32,7 +32,7 @@ python_venv_installed() {
 }
 
 if [ -n "$USE_VENV" ]; then
-    if !python_venv_installed; then
+    if ! python_venv_installed; then
         apt update
         apt install -y --no-install-recommends python3.10-venv
     fi
