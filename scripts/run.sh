@@ -49,8 +49,10 @@ if [ -n "$USE_VENV" ]; then
 fi
 
 ANSIBLE_REMOTE_TEMP=/tmp/ansible-remote/tmp
-mkdir -p "$ANSIBLE_REMOTE_TEMP"
-chmod -R 0777 "$ANSIBLE_REMOTE_TEMP"
+if [ ! -d "$ANSIBLE_REMOTE_TEMP" ]; then
+    mkdir -p "$ANSIBLE_REMOTE_TEMP"
+    chmod -R 0777 "$ANSIBLE_REMOTE_TEMP"
+fi
 
 ANSIBLE_PYTHON_INTERPRETER="$(which python3)" \
 ANSIBLE_NOCOWS=true \
