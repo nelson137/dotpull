@@ -26,16 +26,19 @@ if [ -z "$PLAYBOOK" ]; then
     exit 1
 fi
 
-python_venv_installed() {
-    dpkg -l 2>/dev/null \
-      | awk '$2=="python3.10-venv"{s=$1;exit} END{if(s=="ii") exit 0; exit 1}'
+dpkg_is_installed() {
+    local pkg="$1"
+    dpkg -l "$pkg" 2>/dev/null \
+      | awk -v pkg="$pkg" '$2==pkg{s=$1=="ii";exit} END{exit !x}'
 }
 
 if [ -n "$USE_VENV" ]; then
-    if ! python_venv_installed; then
-        apt update
-        apt install -y --no-install-recommends python3.10-venv
-    fi
+    apt update
+    for pkg in python3.10-venv; do
+        if ! dpkg_is_installed "$pkg"; then
+            apt install -y --no-install-recommends "$pkg"
+        fi
+    done
 
     VENV='/tmp/venv'
 
