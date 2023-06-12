@@ -1,0 +1,23 @@
+- name: Check if already installed
+  stat: path=/usr/local/bin/starship get_checksum=false get_mime=false
+  register: starship_check
+
+- when: starship_check.stat.exists == false
+  become: true
+  vars:
+    starship_installer_path: /tmp/install-starship.sh
+  block:
+
+    - name: Download installer
+      get_url:
+        url: https://starship.rs/install.sh
+        dest: '{{ starship_installer_path }}'
+        mode: 0755
+
+    - name: Run installer
+      command:
+        cmd: '{{ starship_installer_path }} -y'
+        creates: /usr/local/bin/starship
+
+    - name: Remove installer
+      file: path='{{ starship_installer_path }}' state=absent
