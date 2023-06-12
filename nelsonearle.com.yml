@@ -16,14 +16,8 @@
     - auto-updates-disabled
 
     # ==================================================
-    # System Setup
+    # Install System Programs
     # ==================================================
-
-    - hostname
-    - hosts-file
-
-    - custom-motd
-    - custom-motd-neofetch
 
     - role: install-packages
       apt_packages:
@@ -38,6 +32,16 @@
         - zsh
       pip_packages:
         - virtualenv
+
+    # ==================================================
+    # System Setup
+    # ==================================================
+
+    - hostname
+    - hosts-file
+
+    - custom-motd
+    - custom-motd-neofetch
 
     - nginx-dotpull-host
 
