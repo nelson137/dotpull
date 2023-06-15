@@ -40,7 +40,7 @@ _handle_trap() {
 
 trap _handle_trap HUP INT QUIT ABRT KILL PIPE TERM
 
-_trap_set() { _TRAP_HANDLERS+=( "$1" ); }
+_trap_enter() { _TRAP_HANDLERS+=( "$1" ); }
 
 _trap_del() {
     local handler="$1"
@@ -51,6 +51,11 @@ _trap_del() {
         shift
     done
     _TRAP_HANDLERS=( "${new_handlers[@]}" )
+}
+
+_trap_exit() {
+    eval "$@"
+    _trap_del "$1"
 }
 
 # endregion
@@ -114,7 +119,7 @@ start_spinner() {
     done &
 
     SPINNER_PID="$!"
-    _trap_set _trap_cleanup_spinner
+    _trap_enter _trap_cleanup_spinner
 }
 
 stop_spinner() {
@@ -155,7 +160,7 @@ _cleanup_gh_api_header() { rm -f "$_GH_API_HEADER"; unset _GH_API_HEADER; }
 github_api() {
     local response
     _GH_API_HEADER="$(mktemp /tmp/dotpull-github-api-header-XXXXXX.json)"
-    _trap_set _cleanup_gh_api_header
+    _trap_enter _cleanup_gh_api_header
     response="$(curl -sSLD "$_GH_API_HEADER" "${_API_URL}${1}")"
     if echo "$response" | grep -q 'API rate limit exceeded'; then
         awk -v IGNORECASE=1 '
@@ -167,8 +172,7 @@ github_api() {
         ' "$_GH_API_HEADER" >&2
         exit 1
     fi
-    _cleanup_gh_api_header
-    _trap_del _cleanup_gh_api_header
+    _trap_exit _cleanup_gh_api_header
     echo "$response"
 }
 
@@ -240,7 +244,7 @@ select_playbook() {
         done
         printf '\n' >&2
 
-        _trap_set _cleanup_color_prompt
+        _trap_enter _cleanup_color_prompt
         read -rp "${BOLD}Choice (q to quit) ${YELLOW}> " selection </dev/tty
         #           Fix stdin, see note at bottom for more info => ~~~~~~~~~
         printf "$RESET" >&2
@@ -399,7 +403,7 @@ main() {
     printf "${RESET}\n"
 
     _setup_ansible_dirs
-    _trap_set _cleanup_ansible_dirs
+    _trap_enter _cleanup_ansible_dirs
 
     ANSIBLE_PYTHON_INTERPRETER="$(which python3)" \
     ANSIBLE_NOCOWS=true \
@@ -420,8 +424,7 @@ main() {
     # redirecting the tty (`/dev/tty`) of this process to stdin of the process
     # that needs it.
 
-    _cleanup_ansible_dirs
-    _trap_del _cleanup_ansible_dirs
+    _trap_exit _cleanup_ansible_dirs
 }
 
 # endregion
