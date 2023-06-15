@@ -413,7 +413,7 @@ main() {
     ANSIBLE_HOME="$ANSIBLE_HOME" \
     ANSIBLE_REMOTE_TMP="$ANSIBLE_REMOTE_TEMP" \
     ansible-pull -U "$REPO_URL" --purge "$PLAYBOOK_CHOICE" \
-        --vault-id=@prompt -c local -i localhost, -l localhost \
+        -c local -i localhost, -l localhost \
         </dev/tty
     #   ~~~~~~~~~
     #   ^ Fix stdin for ansible
