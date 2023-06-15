@@ -1,0 +1,63 @@
+- become: true
+  block:
+
+    - when: ansible_system == 'Darwin'
+      block:
+
+        - name: Install
+          homebrew: name=neovim state=present update_homebrew=false
+
+    - when: ansible_system == 'Linux'
+      block:
+
+        - name: Install FUSE 2
+          apt: name=libfuse2 state=latest
+
+        - name: Check for FUSE 3
+          command: dpkg -l fuse3
+          changed_when: false
+          register: fuse3_query
+
+        # When fuse3 is not installed
+        - when: fuse3_query.stdout_lines | map('regex_search', '^ii') is not any
+          block:
+
+            - name: Enable FUSE 2
+              command: modprobe -v fuse
+
+            - name: Create FUSE group
+              group: name=fuse
+
+            - name: Add user to FUSE group
+              user: name='{{ primary_user }}' append=true groups=fuse
+
+        - name: Check if already installed
+          stat: path=/usr/bin/nvim get_checksum=false get_mime=false
+          register: nvim_check
+
+        - when: nvim_check.stat.exists == false
+          vars:
+            nvim_appimage_path: /tmp/nvim.appimage
+            nvim_appimage_extract: /tmp/squashfs-root
+          block:
+
+            - name: Download AppImage
+              get_url:
+                url: https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
+                dest: '{{ nvim_appimage_path }}'
+                mode: 0775
+
+            - name: Extract AppImage
+              command:
+                cmd: '{{ nvim_appimage_path }} --appimage-extract'
+                chdir: /tmp
+                creates: '{{ nvim_appimage_extract }}'
+
+            - name: Install AppImage
+              copy: remote_src=true src='{{ nvim_appimage_extract }}/usr' dest=/ mode=preserve
+
+            - name: Remove AppImage and extracted image
+              file: path='{{ item }}' state=absent
+              loop:
+                - '{{ nvim_appimage_path }}'
+                - '{{ nvim_appimage_extract }}'
