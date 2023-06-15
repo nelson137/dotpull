@@ -8,10 +8,10 @@
 
 - name: Check if already installed
   stat: path='{{ user_info.home }}/.oh-my-zsh' get_checksum=false get_mime=false
-  register: oh_my_zsh
+  register: omz_dir
 
 - name: Oh My Zsh
-  when: oh_my_zsh.stat.exists == false
+  when: omz_dir.stat.exists == false
   become: true
   become_user: '{{ user_info.name }}'
   vars:

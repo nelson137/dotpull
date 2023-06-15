@@ -33,9 +33,9 @@
 
         - name: Check if already installed
           stat: path=/usr/bin/nvim get_checksum=false get_mime=false
-          register: nvim_check
+          register: nvim_exe
 
-        - when: nvim_check.stat.exists == false
+        - when: nvim_exe.stat.exists == false
           vars:
             nvim_appimage_path: /tmp/nvim.appimage
             nvim_appimage_extract: /tmp/squashfs-root

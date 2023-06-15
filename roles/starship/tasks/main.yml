@@ -1,8 +1,8 @@
 - name: Check if already installed
   stat: path=/usr/local/bin/starship get_checksum=false get_mime=false
-  register: starship_check
+  register: starship_install
 
-- when: starship_check.stat.exists == false
+- when: starship_install.stat.exists == false
   become: true
   vars:
     starship_installer_path: /tmp/install-starship.sh

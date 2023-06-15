@@ -4,9 +4,9 @@
 
 - name: Check if already installed
   stat: path='{{ user_info.home }}/.cargo/bin/rustup' get_checksum=false get_mime=false
-  register: rustup_check
+  register: rustup_dir
 
-- when: rustup_check.stat.exists == false
+- when: rustup_dir.stat.exists == false
   become: true
   become_user: '{{ user_info.name }}'
   vars:
