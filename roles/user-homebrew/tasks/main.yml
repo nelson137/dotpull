@@ -1,0 +1,58 @@
+- name: Get user info
+  user: name='{{ primary_user }}' state=present
+  register: user_info
+
+- name: Check for unsupported macOS system
+  fail:
+    msg: 'Homebrew on macOS is only supported on Intel and ARM processors: architecture={{ ansible_architecture }}'
+  when: ansible_system == 'Darwin' and ansible_architecture not in ['arm64', 'x86_64']
+
+- name: Check for unsupported Linux system
+  fail:
+    msg: 'Homebrew on Linux is only supported on Intel processors: architecture={{ ansible_architecture }}'
+  when: ansible_system == 'Linux' and ansible_architecture != 'x86_64'
+
+- name: Determine install parameters (Darwin, Apple silicon)
+  when: ansible_system == 'Darwin' and ansible_architecture == 'arm64'
+  set_fact:
+    brew_base_dir: /opt/homebrew
+    brew_repo_dir: /opt/homebrew
+    brew_owner: root
+    brew_group: admin
+
+- name: Determine install parameters (Darwin, Intel silicon)
+  when: ansible_system == 'Darwin' and ansible_architecture == 'x86_64'
+  set_fact:
+    brew_base_dir: /usr/local/Homebrew
+    brew_repo_dir: /usr/local/Homebrew
+    brew_owner: root
+    brew_group: admin
+
+- name: Determine install parameters (Linux)
+  when: ansible_system == 'Linux' and ansible_architecture == 'x86_64'
+  set_fact:
+    brew_base_dir: /home/linuxbrew/.linuxbrew
+    brew_repo_dir: /home/linuxbrew/.linuxbrew/Homebrew
+    brew_owner: '{{ user_info.name }}'
+    brew_group: '{{ user_info.name }}'
+
+- name: Download repository
+  become: true
+  git:
+    repo: https://github.com/Homebrew/brew.git
+    dest: '{{ brew_repo_dir }}'
+    depth: 1
+
+- name: Change ownership
+  become: true
+  file:
+    path: '{{ brew_base_dir }}'
+    state: directory
+    recurse: true
+    owner: '{{ brew_owner }}'
+    group: '{{ brew_group }}'
+
+- name: Update
+  become: true
+  become_user: '{{ user_info.name }}'
+  command: '{{ brew_path }}/bin/brew update --force'
