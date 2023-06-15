@@ -1,0 +1,29 @@
+- name: Get user info
+  user: name='{{ primary_user }}' state=present
+  register: user_info
+
+- become: true
+  become_user: '{{ user_info.name }}'
+  vars:
+    font_dir: '{{ user_info.home }}/.local/share/fonts'
+  block:
+
+    - name: Create fonts directory
+      file: path='{{ font_dir }}' state=directory
+
+    - name: Download fonts
+      unarchive:
+        remote_src: true
+        src: 'https://github.com/ryanoasis/nerd-fonts/releases/latest/download/{{ item }}.tar.xz'
+        dest: '{{ font_dir }}'
+        extra_opts:
+          - --wildcards
+          - '*.ttf'
+      loop:
+        - FiraCode
+        - UbuntuMono
+      register: install_fonts
+
+    - name: Build font caches
+      when: install_fonts.changed
+      command: 'fc-cache {{ font_dir }}'
