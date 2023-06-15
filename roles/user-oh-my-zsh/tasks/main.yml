@@ -7,7 +7,7 @@
   register: user_info
 
 - name: Check if already installed
-  stat: path='{{ user_info.home }}/.oh-my-zsh'
+  stat: path='{{ user_info.home }}/.oh-my-zsh' get_checksum=false get_mime=false
   register: oh_my_zsh
 
 - name: Oh My Zsh

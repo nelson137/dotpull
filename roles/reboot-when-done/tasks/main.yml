@@ -1,5 +1,5 @@
 - name: Check for reboot-required file
-  stat: path=/var/run/reboot-required
+  stat: path=/var/run/reboot-required get_checksum=false get_mime=false
   register: reboot_required
   changed_when: reboot_required.stat.exists
   notify: reboot

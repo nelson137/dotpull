@@ -1,6 +1,5 @@
 - name: Check if already installed
-  stat:
-    path: "{{ ansible_user_dir }}/.tor"
+  stat: path="{{ ansible_user_dir }}/.tor" get_checksum=false get_mime=false
   register: tor_browser
 
 - when: tor_browser.stat.exists == false

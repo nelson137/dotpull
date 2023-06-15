@@ -3,7 +3,7 @@
   register: user_info
 
 - name: Check if already installed
-  stat: path='{{ user_info.home }}/.cargo/bin/rustup'
+  stat: path='{{ user_info.home }}/.cargo/bin/rustup' get_checksum=false get_mime=false
   register: rustup_check
 
 - when: rustup_check.stat.exists == false
