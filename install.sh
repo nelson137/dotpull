@@ -211,7 +211,7 @@ get_os_info() {
 }
 
 get_playbook_list() {
-    start_spinner github 'Getting list of playbooks from HEAD of master/origin'
+    start_spinner github 'Get list of playbooks from repository'
     local playbooks name
     playbooks="$(_get_playbooks_from_head 2>&1)" || err "$playbooks"
     while read name; do
@@ -268,7 +268,7 @@ install_packages() {
 }
 
 apt_install() {
-    start_spinner apt 'Updating package index'
+    start_spinner apt 'Update package index'
     if ! apt update -y &>/dev/null; then
         err "apt: unable to update"
     fi
@@ -276,12 +276,12 @@ apt_install() {
 
     local pkg
     for pkg in "$@"; do
-        start_spinner apt "Checking for package $pkg"
+        start_spinner apt "Check for package $pkg"
         if dpkg -s "$pkg" &>/dev/null; then
             stop_spinner
         else
             stop_spinner '... not installed'
-            start_spinner apt "Installing $pkg"
+            start_spinner apt "Install $pkg"
             if ! apt install -y "$pkg" &>/dev/null; then
                 err "apt: unable to install package: $pkg"
             fi
@@ -293,12 +293,12 @@ apt_install() {
 yum_install() {
     local pkg
     for pkg in "$@"; do
-        start_spinner yum "Checking for package $pkg"
+        start_spinner yum "Check for package $pkg"
         if rpm -q "$pkg" &>/dev/null; then
             stop_spinner
         else
             stop_spinner '... not installed'
-            start_spinner yum "Installing $pkg"
+            start_spinner yum "Install $pkg"
             if ! yum install -y "$pkg" &>/dev/null; then
                 err "yum: unable to install package: $pkg"
             fi
@@ -310,7 +310,7 @@ yum_install() {
 _pip3() { python3 -m pip "$@" &>/dev/null; }
 
 pip3_upgrade() {
-    start_spinner pip3 'Upgrading pip'
+    start_spinner pip3 'Upgrade pip'
     if ! _pip3 install --upgrade pip; then
         err "pip3: unable to upgrade pip"
     fi
@@ -320,12 +320,12 @@ pip3_upgrade() {
 pip3_install() {
     local pkg
     for pkg in "$@"; do
-        start_spinner pip3 "Checking for package $pkg"
+        start_spinner pip3 "Check for package $pkg"
         if _pip3 show "$pkg"; then
             stop_spinner
         else
             stop_spinner '... not installed'
-            start_spinner pip3 "Installing $pkg"
+            start_spinner pip3 "Install $pkg"
             if ! _pip3 install "$pkg"; then
                 err "pip3: unable to install package: $pkg"
             fi
