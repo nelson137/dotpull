@@ -33,9 +33,10 @@ dpkg_is_installed() {
 }
 
 if [ -n "$USE_VENV" ]; then
-    apt update
+    DID_UPDATE=
     for pkg in python3.12-venv; do
         if ! dpkg_is_installed "$pkg"; then
+            [ -z "$DID_UPDATE" ] && { apt update; DID_UPDATE=1; }
             apt install -y --no-install-recommends "$pkg"
         fi
     done
