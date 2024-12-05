@@ -29,7 +29,7 @@ fi
 dpkg_is_installed() {
     local pkg="$1"
     dpkg -l "$pkg" 2>/dev/null \
-      | awk -v pkg="$pkg" '$2==pkg{s=$1=="ii";exit} END{exit !x}'
+      | awk -v pkg="$pkg" '$2==pkg{x=$1=="ii";exit} END{exit !x}'
 }
 
 if [ -n "$USE_VENV" ]; then
