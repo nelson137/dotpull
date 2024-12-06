@@ -1,7 +1,3 @@
-- name: Get user info
-  user: name='{{ primary_user }}' state=present
-  register: user_info
-
 - name: Check for unsupported macOS system
   fail:
     msg: 'Homebrew on macOS is only supported on Intel and ARM processors: architecture={{ ansible_architecture }}'
@@ -12,47 +8,63 @@
     msg: 'Homebrew on Linux is only supported on Intel processors: architecture={{ ansible_architecture }}'
   when: ansible_system == 'Linux' and ansible_architecture != 'x86_64'
 
-- name: Determine install parameters (Darwin, Apple silicon)
+- name: Determine Homebrew directory (Darwin, Apple silicon)
   when: ansible_system == 'Darwin' and ansible_architecture == 'arm64'
-  set_fact:
-    brew_base_dir: /opt/homebrew
-    brew_repo_dir: /opt/homebrew
-    brew_owner: root
-    brew_group: admin
+  stat: path=/opt/homebrew/bin/brew
+  register: brew_path
 
-- name: Determine install parameters (Darwin, Intel silicon)
+- name: Determine Homebrew directory (Darwin, Intel silicon)
   when: ansible_system == 'Darwin' and ansible_architecture == 'x86_64'
-  set_fact:
-    brew_base_dir: /usr/local/Homebrew
-    brew_repo_dir: /usr/local/Homebrew
-    brew_owner: root
-    brew_group: admin
+  stat: path=/usr/local/Homebrew/bin/brew
+  register: brew_path
 
-- name: Determine install parameters (Linux)
+- name: Determine Homebrew directory (Linux)
   when: ansible_system == 'Linux' and ansible_architecture == 'x86_64'
-  set_fact:
-    brew_base_dir: /home/linuxbrew/.linuxbrew
-    brew_repo_dir: /home/linuxbrew/.linuxbrew/Homebrew
-    brew_owner: '{{ user_info.name }}'
-    brew_group: '{{ user_info.name }}'
+  stat: path=/home/linuxbrew/.linuxbrew/bin/brew
+  register: brew_path
 
-- name: Download repository
-  become: true
-  git:
-    repo: https://github.com/Homebrew/brew.git
-    dest: '{{ brew_repo_dir }}'
-    depth: 1
+- name: Install Homebrew
+  when: not brew_path.stat.exists
+  vars:
+    homebrew_install_script_sudoers_file_path: /etc/sudoers.d/homebrew-install
+  block:
 
-- name: Change ownership
-  become: true
-  file:
-    path: '{{ brew_base_dir }}'
-    state: directory
-    recurse: true
-    owner: '{{ brew_owner }}'
-    group: '{{ brew_group }}'
+  - name: Create temporary file for Homebrew Install Script
+    tempfile:
+      suffix: .homebrew-install-script
+    register: homebrew_install_script_tempfile
 
-- name: Update
+  - name: Download Homebrew Install Script to temporary file
+    get_url:
+      url: https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh
+      dest: '{{ homebrew_install_script_tempfile.path }}'
+      mode: 0755
+
+  - name: Install sudoers file for Homebrew Install Script execution
+    template:
+      src: sudoers
+      dest: '{{ homebrew_install_script_sudoers_file_path }}'
+    vars:
+      username: '{{ primary_user }}'
+
+  - name: Execute the Homebrew Install Script
+    become: true
+    become_user: nelson
+    command: '{{ homebrew_install_script_tempfile.path }}'
+    environment:
+      CI: 1
+
+  always:
+
+  - name: Remove Homebrew Install Script temporary file
+    file: path='{{ homebrew_install_script_tempfile.path }}' state=absent
+
+  - name: Remove Homebrew Install Script sudoers file
+    file: path='{{ homebrew_install_script_sudoers_file_path }}' state=absent
+
+- name: Update Homebrew
   become: true
-  become_user: '{{ user_info.name }}'
-  command: '{{ brew_path }}/bin/brew update --force'
+  become_user: '{{ primary_user }}'
+  command: '{{ brew_path.stat.path }} update --force'
+  register: brew_update
+  changed_when: '"Already up-to-date" not in brew_update.stderr'
