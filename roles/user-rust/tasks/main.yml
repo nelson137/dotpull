@@ -1,14 +1,8 @@
-- name: Get user info
-  user: name='{{ primary_user }}' state=present
-  register: user_info
-
 - name: Check if already installed
-  stat: path='{{ user_info.home }}/.cargo/bin/rustup' get_checksum=false get_mime=false
+  stat: path='{{ ansible_user_dir }}/.cargo/bin/rustup' get_checksum=false get_mime=false
   register: rustup_dir
 
 - when: rustup_dir.stat.exists == false
-  become: true
-  become_user: '{{ user_info.name }}'
   vars:
     rustup_installer_path: /tmp/install-rustup.sh
   block:
@@ -22,7 +16,7 @@
     - name: Execute installer
       command:
         cmd: '{{ rustup_installer_path }} --no-modify-path -y'
-        creates: '{{ user_info.home }}/.rustup'
+        creates: '{{ ansible_user_dir }}/.rustup'
 
   always:
 

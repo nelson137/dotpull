@@ -2,11 +2,7 @@
 
 set -eo pipefail
 
-if [ ! "$EUID" = 0 ]; then
-    exec sudo "$0" "$@"
-fi
-
-declare USE_VENV PLAYBOOK
+declare PLAYBOOK
 declare -a ANSIBLE_ARGS
 
 while (( $# > 0 )); do
@@ -14,7 +10,6 @@ while (( $# > 0 )); do
         ANSIBLE_ARGS+=( "$1" )
     else
         case "$1" in
-            --venv) USE_VENV=1 ;;
             *) PLAYBOOK="$1" ;;
         esac
     fi
@@ -22,34 +17,23 @@ while (( $# > 0 )); do
 done
 
 if [ -z "$PLAYBOOK" ]; then
-    echo "Usage: $0 [--venv] PLAYBOOK [ANSIBLE_ARGS...]" >&2
+    echo "Usage: $0 PLAYBOOK [ANSIBLE_ARGS...]" >&2
     exit 1
 fi
 
-dpkg_is_installed() {
-    local pkg="$1"
-    dpkg -l "$pkg" 2>/dev/null \
-      | awk -v pkg="$pkg" '$2==pkg{x=$1=="ii";exit} END{exit !x}'
-}
-
-if [ -n "$USE_VENV" ]; then
-    DID_UPDATE=
-    for pkg in python3.12-venv; do
-        if ! dpkg_is_installed "$pkg"; then
-            [ -z "$DID_UPDATE" ] && { apt update; DID_UPDATE=1; }
-            apt install -y --no-install-recommends "$pkg"
-        fi
-    done
-
-    VENV='/tmp/venv'
-
-    if [ -d "$VENV" ]; then
-        source "$VENV/bin/activate"
-    else
-        python3 -m venv "$VENV"
-        source "$VENV/bin/activate"
-        pip3 install ansible
-    fi
+if [ ! -x "$HOME/.local/bin/uv" ]; then
+    # Install uv
+    declare UV_RELEASES UV_DOWNLOAD_URL
+    UV_RELEASES="$(curl -ksSLf https://api.github.com/repos/astral-sh/uv/releases)"
+    UV_DOWNLOAD_URL="$(python3 -c '
+import sys, json
+releases = json.load(sys.stdin)
+assets = releases[0]["assets"]
+installer_asset = next(a for a in assets if a["name"] == "uv-installer.sh")
+print(installer_asset["browser_download_url"])
+    ' <<< "$UV_RELEASES")"
+    curl -sSLf "$UV_DOWNLOAD_URL" | sh -
+    unset UV_RELEASES UV_DOWNLOAD_URL
 fi
 
 ANSIBLE_REMOTE_TEMP=/tmp/ansible-remote/tmp
@@ -65,7 +49,8 @@ ANSIBLE_RETRY_FILES_ENABLED=false \
 ANSIBLE_DEPRECATION_WARNINGS=false \
 ANSIBLE_HOME=/tmp/ansible \
 ANSIBLE_REMOTE_TMP="$ANSIBLE_REMOTE_TEMP" \
-ansible-playbook \
+uv run ansible-playbook \
     -c local -i localhost, -l localhost \
+    --ask-become-pass \
     "$PLAYBOOK" \
     "$@"

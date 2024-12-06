@@ -2,14 +2,8 @@
 
 set -eo pipefail
 
-if [ "$EUID" -ne 0 ]; then
-    echo 'error: must be run as root' >&2
-    echo "Try: sudo $0 $*" >&2
-    exit 1
-fi
-
-# Ansible is installed in /usr/local/bin so make sure that it is discoverable
-PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin
+# Cache sudo password
+sudo -l mkdir &>/dev/null
 
 PLAYBOOKS=()
 PLAYBOOK_CHOICE=
@@ -269,7 +263,7 @@ install_packages() {
 
 apt_install() {
     start_spinner apt 'Update package index'
-    if ! apt update -y &>/dev/null; then
+    if ! sudo apt update -y &>/dev/null; then
         err "apt: unable to update"
     fi
     stop_spinner
@@ -282,7 +276,7 @@ apt_install() {
         else
             stop_spinner '... not installed'
             start_spinner apt "Install $pkg"
-            if ! apt install -y "$pkg" &>/dev/null; then
+            if ! sudo apt install -y "$pkg" &>/dev/null; then
                 err "apt: unable to install package: $pkg"
             fi
             stop_spinner
@@ -307,23 +301,32 @@ yum_install() {
     done
 }
 
-_pip3() { python3 -m pip "$@" &>/dev/null; }
-
-pip3_install() {
-    local pkg
-    for pkg in "$@"; do
-        start_spinner pip3 "Check for package $pkg"
-        if _pip3 show "$pkg"; then
-            stop_spinner
-        else
-            stop_spinner '... not installed'
-            start_spinner pip3 "Install $pkg"
-            if ! _pip3 install "$pkg"; then
-                err "pip3: unable to install package: $pkg"
-            fi
-            stop_spinner
+install_uv() {
+    local uv_installed
+    start_spinner uv 'Check for uv'
+    if [ -x "$HOME/.local/bin/uv" ]; then
+        stop_spinner
+    else
+        stop_spinner '... not installed'
+        start_spinner 'Installing'
+        local uv_releases uv_download_url
+        if ! uv_releases="$(curl -ksSLf https://api.github.com/repos/astral-sh/uv/releases)"; then
+            err 'uv: failed to get releases'
         fi
-    done
+        if ! uv_download_url="$(python3 -c '
+import sys, json
+releases = json.load(sys.stdin)
+assets = releases[0]["assets"]
+installer_asset = next(a for a in assets if a["name"] == "uv-installer.sh")
+print(installer_asset["browser_download_url"])
+        ' <<< "$uv_releases")"; then
+            err 'uv: failed to find latest release'
+        fi
+        if ! curl -sSLf "$uv_download_url" | UV_NO_MODIFY_PATH=1 sh - &>/dev/null; then
+            err 'uv: failed to install'
+        fi
+        stop_spinner
+    fi
 }
 
 # endregion
@@ -372,8 +375,8 @@ main() {
     # Install package dependencies
     install_packages "${packages[@]}"
 
-    # Install ansible & its python dependencies
-    pip3_install ansible
+    install_uv
+    PATH="$HOME/.local/bin:$PATH"
 
     get_playbook_list
 
@@ -403,8 +406,10 @@ main() {
     ANSIBLE_DEPRECATION_WARNINGS=false \
     ANSIBLE_HOME="$ANSIBLE_HOME" \
     ANSIBLE_REMOTE_TMP="$ANSIBLE_REMOTE_TEMP" \
-    ansible-pull -U "$REPO_URL" --purge "$PLAYBOOK_CHOICE" \
+    uv run \
+        ansible-pull -U "$REPO_URL" --purge "$PLAYBOOK_CHOICE" \
         -c local -i localhost, -l localhost \
+        --ask-become-pass \
         </dev/tty
     #   ~~~~~~~~~
     #   ^ Fix stdin for ansible
