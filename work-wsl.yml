@@ -1,0 +1,52 @@
+---
+- hosts: all
+  vars:
+    win_username: nelson.earle
+  roles:
+    - wsl-windows-profile-symlink
+    - name: install-packages
+      apt_packages:
+        - apt-transport-https
+        # - aspnetcore-runtime-6.0
+        - build-essential
+        # - dotnet-runtime-6.0
+        # - dotnet-runtime-8.0
+        # - dotnet-sdk-6.0
+        - git
+        - wl-clipboard
+        - xclip
+        - zsh
+        - zsh-doc
+    - user-hushlogin
+    - name: user-homebrew
+      brew_packages:
+        - bat
+        # - btop
+        # - deno
+        # - fd
+        # - ffmpeg
+        - fzf
+        # - gcc # Recommended by homebrew
+        # - git
+        # - git-delta
+        # - go
+        # - graphviz
+        # - hadolint
+        # - hyperfine
+        - jq
+        # - lazygit
+        # - llvm
+        # - neovim
+        # - nmap
+        - ripgrep
+        # - tmux
+    - user-rust
+    - name: user-code-directory
+      code_dir: /opt/code
+    - user-dotfiles
+    # - name: user-repositories
+    #   repositories:
+    #     - repo: https://tfs.p.vu.local/tfs/DefaultCollection/Sales/_git/myqueue
+    #       dest: /opt/code/myqueue
+    #       environment:
+    #         GIT_SSL_CAINFO: /mnt/c/certificates/vu-chain2021.pem
