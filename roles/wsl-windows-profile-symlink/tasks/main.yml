@@ -1,0 +1,5 @@
+- name: Create a symbolic link to the windows user profile directory
+  file:
+    state: link
+    src: '/mnt/c/Users/{{ win_username }}'
+    dest: /winhome
