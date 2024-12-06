@@ -10,21 +10,25 @@
 
 - name: Determine Homebrew directory (Darwin, Apple silicon)
   when: ansible_system == 'Darwin' and ansible_architecture == 'arm64'
-  stat: path=/opt/homebrew/bin/brew
-  register: brew_path
+  set_fact:
+    brew_path: /opt/homebrew/bin/brew
 
 - name: Determine Homebrew directory (Darwin, Intel silicon)
   when: ansible_system == 'Darwin' and ansible_architecture == 'x86_64'
-  stat: path=/usr/local/Homebrew/bin/brew
-  register: brew_path
+  set_fact:
+    brew_path: /usr/local/Homebrew/bin/brew
 
 - name: Determine Homebrew directory (Linux)
   when: ansible_system == 'Linux' and ansible_architecture == 'x86_64'
-  stat: path=/home/linuxbrew/.linuxbrew/bin/brew
-  register: brew_path
+  set_fact:
+    brew_path: /home/linuxbrew/.linuxbrew/bin/brew
+
+- name: Check for Homebrew installation
+  stat: path='{{ brew_path }}'
+  register: brew_installation
 
 - name: Install Homebrew
-  when: not brew_path.stat.exists
+  when: not brew_installation.stat.exists
   vars:
     homebrew_install_script_sudoers_file_path: /etc/sudoers.d/homebrew-install
   block:
@@ -63,7 +67,7 @@
     file: path='{{ homebrew_install_script_sudoers_file_path }}' state=absent
 
 - name: Update Homebrew
-  command: '{{ brew_path.stat.path }} update --force'
+  command: '{{ brew_path }} update --force'
   register: brew_update
   changed_when: '"Already up-to-date" not in brew_update.stderr'
 
