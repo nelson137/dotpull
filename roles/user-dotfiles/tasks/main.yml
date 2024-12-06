@@ -3,6 +3,8 @@
     clone: true
     repo: 'https://github.com/nelson137/.dot'
     dest: '{{ ansible_user_dir }}/.dot'
+  register: clone_dotfiles_repo
 
 - name: Install dotfiles
+  when: clone_dotfiles_repo.changed
   command: '{{ ansible_user_dir }}/.dot/deploy.sh'
