@@ -1,0 +1,65 @@
+---
+- hosts: all
+  vars:
+    win_username: nelson.earle
+    user_email: nelson.earle@veteransunited.com
+  roles:
+    - wsl-config
+    - wsl-windows-profile-symlink
+    - user-work-certificate
+    - name: install-packages
+      apt_packages:
+        - apt-transport-https
+        # - aspnetcore-runtime-6.0
+        - build-essential
+        # - dotnet-runtime-6.0
+        # - dotnet-runtime-8.0
+        # - dotnet-sdk-6.0
+        - wl-clipboard # Speeds up neovim startup & clipboard integration
+        - xclip
+        - zsh
+        - zsh-doc
+    - google-chrome
+    - name: primary-user
+      primary_user: '{{ ansible_user_id }}'
+      ssh_key_comment: '{{ user_email }}'
+    - user-hushlogin
+    - user-selected-editor
+    - name: user-homebrew
+      brew_tap:
+        - oven-sh/bun
+      brew_packages:
+        - bat
+        - btop
+        - bun
+        - curl
+        - deno
+        - fd
+        - ffmpeg
+        - fzf
+        - gcc # Recommended by homebrew
+        - gh
+        - git
+        - git-delta
+        - go
+        - graphviz
+        - hadolint
+        - hyperfine
+        - jq
+        - lazygit
+        - llvm
+        - neovim
+        - nmap
+        - ripgrep
+        - tmux
+    - user-nvm
+    - user-rust
+    - name: user-code-directory
+      code_dir: /opt/code
+    - user-dotfiles
+    - name: user-repositories
+      repositories:
+        - repo: https://tfs.p.vu.local/tfs/DefaultCollection/Sales/_git/myqueue
+          dest: /opt/code/myqueue
+          environment:
+            GIT_SSL_CAINFO: /mnt/c/certificates/vu-chain2021.pem
