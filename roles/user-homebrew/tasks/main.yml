@@ -68,3 +68,9 @@
   command: '{{ brew_path.stat.path }} update --force'
   register: brew_update
   changed_when: '"Already up-to-date" not in brew_update.stderr'
+
+- name: Install packages
+  when: brew_packages is defined and brew_packages
+  become: true
+  become_user: '{{ primary_user }}'
+  homebrew: name='{{ brew_packages }}' state=present update_homebrew=false
