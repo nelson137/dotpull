@@ -1,3 +1,6 @@
+# NOTE: modern distros will also suppress the sudo message if `~/.hushlogin`
+# exists, which also suppresses the daily system welcome message.
+
 - name: Get user info
   user: name='{{ primary_user }}' state=present
   register: user_info
