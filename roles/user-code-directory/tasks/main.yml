@@ -1,6 +1,7 @@
 - name: Create the source code directory
+  become: true
   file:
     path: '{{ code_dir }}'
     state: directory
-    owner: '{{ primary_user }}'
-    group: '{{ primary_user }}'
+    owner: '{{ ansible_user_id }}'
+    group: '{{ ansible_user_id }}'

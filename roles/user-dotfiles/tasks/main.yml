@@ -1,18 +1,8 @@
-- name: Get user info
-  user: name='{{ primary_user }}' state=present
-  register: user_info
+- name: Clone repo
+  git:
+    clone: true
+    repo: 'https://github.com/nelson137/.dot'
+    dest: '{{ ansible_user_dir }}/.dot'
 
-- become: true
-  become_user: '{{ user_info.name }}'
-  vars:
-    dotfiles_repo_url: https://github.com/nelson137/.dot
-  block:
-
-    - name: Clone repo
-      git:
-        clone: yes
-        repo: '{{ dotfiles_repo_url }}'
-        dest: '{{ user_info.home }}/.dot'
-
-    - name: Install dotfiles
-      command: '{{ user_info.home }}/.dot/deploy.sh'
+- name: Install dotfiles
+  command: '{{ ansible_user_dir }}/.dot/deploy.sh'
