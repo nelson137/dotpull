@@ -2,7 +2,7 @@
   user: name='{{ primary_user }}' state=present
   register: user_info
 
-- name: Touch ~/.sudo_as_admin_successful
+- name: Silence the first-time sudo message
   become: true
   become_user: '{{ user_info.name }}'
   file:
