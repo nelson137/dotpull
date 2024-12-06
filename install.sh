@@ -309,14 +309,6 @@ yum_install() {
 
 _pip3() { python3 -m pip "$@" &>/dev/null; }
 
-pip3_upgrade() {
-    start_spinner pip3 'Upgrade pip'
-    if ! _pip3 install --upgrade pip; then
-        err "pip3: unable to upgrade pip"
-    fi
-    stop_spinner
-}
-
 pip3_install() {
     local pkg
     for pkg in "$@"; do
@@ -381,7 +373,6 @@ main() {
     install_packages "${packages[@]}"
 
     # Install ansible & its python dependencies
-    pip3_upgrade
     pip3_install ansible
 
     get_playbook_list
