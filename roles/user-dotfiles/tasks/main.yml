@@ -11,7 +11,6 @@
     - name: Clone repo
       git:
         clone: yes
-        depth: 1
         repo: '{{ dotfiles_repo_url }}'
         dest: '{{ user_info.home }}/.dot'
 
