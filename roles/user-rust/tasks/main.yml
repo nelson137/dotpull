@@ -24,5 +24,7 @@
         cmd: '{{ rustup_installer_path }} --no-modify-path -y'
         creates: '{{ user_info.home }}/.rustup'
 
+  always:
+
     - name: Remove installer
       file: path='{{ rustup_installer_path }}' state=absent
