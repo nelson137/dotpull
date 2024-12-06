@@ -1,0 +1,6 @@
+- name: Create the source code directory
+  file:
+    path: '{{ code_dir }}'
+    state: directory
+    owner: '{{ primary_user }}'
+    group: '{{ primary_user }}'
