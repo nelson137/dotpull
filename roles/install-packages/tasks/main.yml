@@ -31,6 +31,3 @@
 
         - name: Install yum packages
           yum: name="{{ yum_packages }}" state=latest
-
-    - name: Install pip packages
-      pip: name='{{ pip_packages }}'

@@ -30,8 +30,6 @@
         - vim
         - zip
         - zsh
-      pip_packages:
-        - virtualenv
 
     - starship
 

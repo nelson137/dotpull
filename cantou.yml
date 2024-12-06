@@ -32,8 +32,6 @@
         - zip
         - zsh
 
-    - pip-packages
-
     - youtube-dl
     - nodejs
 
