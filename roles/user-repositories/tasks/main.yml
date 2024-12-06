@@ -1,0 +1,12 @@
+- name: Clone repositories
+  become: true
+  become_user: '{{ primary_user }}'
+  git:
+    repo: '{{ item.repo | default(omit) }}'
+    dest: '{{ item.dest | default(omit) }}'
+    clone: '{{ item.clone | default(omit) }}'
+    depth: '{{ item.depth | default(omit) }}'
+    recursive: '{{ item.recursive | default(omit) }}'
+  environment:
+    GIT_SSL_CAINFO: '{{ (item.environment | default({})).GIT_SSL_CAINFO | default(omit) }}'
+  loop: '{{ repositories }}'
