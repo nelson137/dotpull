@@ -1,10 +1,2 @@
-- name: Get user info
-  user: name='{{ primary_user }}' state=present
-  register: user_info
-
 - name: Copy config file
-  become: true
-  become_user: '{{ user_info.name }}'
-  copy:
-    src: .selected_editor
-    dest: "{{ user_info.home }}/.selected_editor"
+  copy: src=.selected_editor dest='{{ ansible_user_dir }}/.selected_editor'
