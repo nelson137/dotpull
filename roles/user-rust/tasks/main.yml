@@ -14,7 +14,7 @@
       get_url:
         url: https://sh.rustup.rs
         dest: '{{ rustup_install_script_tempfile.path }}'
-        mode: 0755
+        mode: '0755'
         force: true # rustup.rs responds with a 304
 
     - name: Run the Install Script

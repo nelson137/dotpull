@@ -12,7 +12,7 @@
       get_url:
         url: https://starship.rs/install.sh
         dest: '{{ starship_installer_path }}'
-        mode: 0755
+        mode: '0755'
 
     - name: Run installer
       command:

@@ -8,7 +8,7 @@
   copy:
     src: "{{ item }}.vault"
     dest: "{{ user_info.home }}/.ssh/{{ item }}"
-    mode: 0600
+    mode: '0600'
   loop:
     - id_rsa
     - id_rsa.pub
