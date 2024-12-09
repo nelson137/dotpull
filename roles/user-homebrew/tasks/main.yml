@@ -24,7 +24,7 @@
     brew_path: /home/linuxbrew/.linuxbrew/bin/brew
 
 - name: Check for Homebrew installation
-  stat: path='{{ brew_path }}'
+  stat: path='{{ brew_path }}' get_checksum=false get_mime=false
   register: brew_installation
 
 - name: Install Homebrew
