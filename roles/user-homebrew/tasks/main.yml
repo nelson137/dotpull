@@ -85,6 +85,22 @@
 # Install packages
 ################################################################################
 
+- name: Get the current formula repositories
+  command: brew tap
+  environment:
+    PATH: '/usr/local/bin:/opt/homebrew/bin:/home/linuxbrew/.linuxbrew/bin:{{ ansible_env["PATH"] }}'
+    HOMEBREW_NO_AUTO_UPDATE: 1
+  changed_when: false
+  register: homebrew_tapped_repos
+
+- name: Tap formula repositories
+  when: item not in homebrew_tapped_repos.stdout_lines
+  command: 'brew tap {{ item }}'
+  environment:
+    PATH: '/usr/local/bin:/opt/homebrew/bin:/home/linuxbrew/.linuxbrew/bin:{{ ansible_env["PATH"] }}'
+    HOMEBREW_NO_AUTO_UPDATE: 1
+  loop: '{{ brew_tap | default([]) }}'
+
 - name: Install packages
   when: brew_packages is defined and brew_packages
   homebrew: name='{{ brew_packages }}' state=present update_homebrew=false
