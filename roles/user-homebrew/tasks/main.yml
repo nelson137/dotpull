@@ -1,3 +1,7 @@
+################################################################################
+# Check for system support & determine the expected installation directory
+################################################################################
+
 - name: Check for unsupported macOS system
   fail:
     msg: 'Homebrew on macOS is only supported on Intel and ARM processors: architecture={{ ansible_architecture }}'
@@ -26,6 +30,10 @@
 - name: Check for Homebrew installation
   stat: path='{{ brew_path }}' get_checksum=false get_mime=false
   register: brew_installation
+
+################################################################################
+# Install
+################################################################################
 
 - name: Install Homebrew
   when: not brew_installation.stat.exists
@@ -66,10 +74,18 @@
     become: true
     file: path='{{ homebrew_install_sudoers_file_path }}' state=absent
 
+################################################################################
+# Update
+################################################################################
+
 - name: Update Homebrew
   command: '{{ brew_path }} update --force'
   register: brew_update
   changed_when: '"Already up-to-date" not in brew_update.stderr'
+
+################################################################################
+# Install packages
+################################################################################
 
 - name: Install packages
   when: brew_packages is defined and brew_packages
