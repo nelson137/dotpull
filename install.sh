@@ -262,19 +262,19 @@ install_packages() {
 }
 
 apt_install() {
-    start_spinner apt 'Update package index'
-    if ! sudo apt update -y &>/dev/null; then
-        err "apt: unable to update"
-    fi
-    stop_spinner
-
-    local pkg
+    local pkg did_update
     for pkg in "$@"; do
-        start_spinner apt "Check for package $pkg"
         if dpkg -s "$pkg" &>/dev/null; then
-            stop_spinner
+            info_nl apt "Package installed: $pkg $CHECK_MARK"
         else
-            stop_spinner '... not installed'
+            if [ -z "$did_update" ]; then
+                start_spinner apt 'Update package index'
+                if ! sudo apt update -y &>/dev/null; then
+                    err "apt: unable to update"
+                fi
+                stop_spinner
+                did_update=1
+            fi
             start_spinner apt "Install $pkg"
             if ! sudo apt install -y "$pkg" &>/dev/null; then
                 err "apt: unable to install package: $pkg"
@@ -285,13 +285,11 @@ apt_install() {
 }
 
 yum_install() {
-    local pkg
+    local pkg did_update
     for pkg in "$@"; do
-        start_spinner yum "Check for package $pkg"
         if rpm -q "$pkg" &>/dev/null; then
-            stop_spinner
+            info_nl yum "Package installed: $pkg $CHECK_MARK"
         else
-            stop_spinner '... not installed'
             start_spinner yum "Install $pkg"
             if ! yum install -y "$pkg" &>/dev/null; then
                 err "yum: unable to install package: $pkg"
@@ -303,11 +301,9 @@ yum_install() {
 
 install_uv() {
     local uv_installed
-    start_spinner uv 'Check for uv'
     if [ -x "$HOME/.local/bin/uv" ]; then
-        stop_spinner
+        info_nl uv "Installed $CHECK_MARK"
     else
-        stop_spinner '... not installed'
         start_spinner uv 'Installing'
         local uv_releases uv_download_url
         if ! uv_releases="$(curl -ksSLf https://api.github.com/repos/astral-sh/uv/releases)"; then
