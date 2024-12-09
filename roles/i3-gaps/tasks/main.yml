@@ -28,13 +28,13 @@
 - name: Get latest download url
   shell:
     cmd: curl -sL https://api.github.com/repos/Airblader/i3/releases/latest | jq -r '.assets[] | select(.name|endswith(".tar.xz")).browser_download_url'
-    warn: no
+    warn: false
   register: download_url
   changed_when: false
 
 - name: Download and extract archive
   unarchive:
-    remote_src: yes
+    remote_src: true
     src: "{{ download_url.stdout }}"
     dest: /tmp/i3-gaps
     creates: /tmp/i3-gaps

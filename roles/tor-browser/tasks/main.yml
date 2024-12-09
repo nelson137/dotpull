@@ -9,7 +9,7 @@
       register: tor_v_p
       shell:
         cmd: curl -sL "{{ tor_url }}" | grep -oP '(?<=<a href=")[0-9\.]+(?=/")' | sort -n | tail -1
-        warn: no
+        warn: false
       changed_when: false
 
     - set_fact:
@@ -39,7 +39,7 @@
       unarchive:
         src: "/tmp/tor-browser-linux64-{{ tor_v }}_en-US.tar.xz"
         dest: "{{ ansible_user_dir }}"
-        remote_src: yes
+        remote_src: true
         creates: "{{ ansible_user_dir }}/tor-browser_en-US"
       notify:
         - remove tor-browser sha256sum

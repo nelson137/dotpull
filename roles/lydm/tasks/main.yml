@@ -13,7 +13,7 @@
 
     - name: Clone repo
       git:
-        clone: yes
+        clone: true
         depth: 1
         repo: https://github.com/cylgom/ly
         dest: "{{ ly_dir }}"
@@ -31,9 +31,9 @@
 
 - name: Disable old display manager
   become: true
-  service: name=display-manager enabled=no
+  service: name=display-manager enabled=false
   failed_when: false
 
 - name: Enable service
   become: true
-  service: name=ly enabled=yes
+  service: name=ly enabled=true

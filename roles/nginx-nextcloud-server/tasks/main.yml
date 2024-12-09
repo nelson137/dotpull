@@ -86,7 +86,7 @@
 
         - name: Extract archive
           unarchive:
-            remote_src: yes
+            remote_src: true
             src: /tmp/nextcloud.tar.bz2
             dest: /var/www
             creates: /var/www/nextcloud

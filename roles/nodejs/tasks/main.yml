@@ -2,7 +2,7 @@
   register: latest_v
   shell:
     cmd: curl -s https://nodejs.org/dist/latest/SHASUMS256.txt | grep -oPm 1 '(?<=v)[0-9]+'
-    warn: no
+    warn: false
   changed_when: false
 
 - name: Check if already installed

@@ -11,7 +11,7 @@
       register: etcher_version
       shell:
         cmd: curl -sw '%{redirect_url}' "{{ etcher_url }}" -o /dev/null | grep -o '[0-9.]\+$'
-        warn: no
+        warn: false
       changed_when: false
 
     - name: Download and install
