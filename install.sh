@@ -308,7 +308,7 @@ install_uv() {
         stop_spinner
     else
         stop_spinner '... not installed'
-        start_spinner 'Installing'
+        start_spinner uv 'Installing'
         local uv_releases uv_download_url
         if ! uv_releases="$(curl -ksSLf https://api.github.com/repos/astral-sh/uv/releases)"; then
             err 'uv: failed to get releases'
