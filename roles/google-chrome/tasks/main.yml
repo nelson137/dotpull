@@ -1,0 +1,28 @@
+- when: ansible_os_family == 'Debian'
+  vars:
+    _arch_map:
+      aarch64: arm64
+      armv6l: armhf
+      armv7l: armhf
+      i386: i386
+      x86_64: amd64
+    chrome_keyring_path: /etc/apt/keyrings/google-chrome.pub
+  block:
+
+    - name: Download the Google signing key
+      become: true
+      get_url:
+        url: https://dl-ssl.google.com/linux/linux_signing_key.pub
+        dest: '{{ chrome_keyring_path }}'
+        mode: '0644'
+
+    - name: Install the APT source
+      become: true
+      template: src=google-chrome.list.j2 dest=/etc/apt/sources.list.d/google-chrome.list
+      vars:
+        deb_arch: '{{ _arch_map[ansible_architecture] }}'
+        deb_keyring: '{{ chrome_keyring_path }}'
+
+    - name: Install Google Chrome
+      become: true
+      apt: name=google-chrome-stable state=latest update_cache=true
