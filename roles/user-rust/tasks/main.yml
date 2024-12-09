@@ -2,23 +2,26 @@
   stat: path='{{ ansible_user_dir }}/.cargo/bin/rustup' get_checksum=false get_mime=false
   register: rustup_dir
 
-- when: rustup_dir.stat.exists == false
-  vars:
-    rustup_installer_path: /tmp/install-rustup.sh
+- when: not rustup_dir.stat.exists
   block:
 
-    - name: Download installer
+    - name: Create a temporary file for the Install Script
+      tempfile:
+        suffix: .rustup-install-script
+      register: rustup_install_script_tempfile
+
+    - name: Download the Install Script to the temporary file
       get_url:
         url: https://sh.rustup.rs
-        dest: '{{ rustup_installer_path }}'
+        dest: '{{ rustup_install_script_tempfile.path }}'
         mode: 0755
 
-    - name: Execute installer
+    - name: Run the Install Script
       command:
-        cmd: '{{ rustup_installer_path }} --no-modify-path -y'
+        cmd: '{{ rustup_install_script_tempfile.path }} --no-modify-path -y'
         creates: '{{ ansible_user_dir }}/.rustup'
 
   always:
 
-    - name: Remove installer
-      file: path='{{ rustup_installer_path }}' state=absent
+    - name: Remove the Install Script temporary file
+      file: path='{{ rustup_install_script_tempfile.path }}' state=absent
