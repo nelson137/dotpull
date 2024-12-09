@@ -1,0 +1,38 @@
+- name: Check if already installed
+  stat: path='{{ ansible_user_dir }}/.nvm/nvm.sh' get_checksum=false get_mime=false
+  register: nvm_script
+
+- when: not nvm_script.stat.exists
+  block:
+
+    - name: Fetch NVM releases
+      uri:
+        url: https://api.github.com/repos/nvm-sh/nvm/releases
+      register: nvm_releases
+
+    - name: Find most recent release tag
+      set_fact:
+        nvm_release_tag: '{{ nvm_releases.json | selectattr("tag_name", "match", "^v\d+\.\d+\.\d+$") | map(attribute="tag_name") | first }}'
+
+    - name: Create a temporary file for the Install Script
+      tempfile:
+        suffix: .nvm-install-script
+      register: nvm_install_script_tempfile
+
+    - name: Download the Install Script to the temporary file
+      get_url:
+        url: 'https://raw.githubusercontent.com/nvm-sh/nvm/{{ nvm_release_tag }}/install.sh'
+        dest: '{{ nvm_install_script_tempfile.path }}'
+        mode: '0755'
+
+    - name: Run the Install Script
+      command:
+        cmd: '{{ nvm_install_script_tempfile.path }}'
+        creates: '{{ ansible_user_dir }}/.nvm/nvm.sh'
+      environment:
+        PROFILE: /dev/null
+
+  always:
+
+    - name: Remove the Install Script temporary file
+      file: path='{{ nvm_install_script_tempfile.path }}' state=absent
