@@ -205,7 +205,7 @@ get_os_info() {
 }
 
 get_playbook_list() {
-    start_spinner github 'Get list of playbooks from repository'
+    start_spinner github 'Fetching playbooks'
     local playbooks name
     playbooks="$(_get_playbooks_from_head 2>&1)" || err "$playbooks"
     while read name; do
@@ -231,8 +231,8 @@ select_playbook() {
     local -a books=( "$@" )
 
     while true; do
-        echo 'Select a host playbook:' >&2
-        echo '=======================' >&2
+        echo 'Select a playbook:' >&2
+        echo '==================' >&2
         for (( i=0; i<$#; i++ )); do
             echo "  $i) ${books[$i]}" >&2
         done
@@ -268,14 +268,14 @@ apt_install() {
             info_nl apt "Package installed: $pkg $CHECK_MARK"
         else
             if [ -z "$did_update" ]; then
-                start_spinner apt 'Update package index'
+                start_spinner apt 'Updating package index'
                 if ! sudo apt update -y &>/dev/null; then
                     err "apt: unable to update"
                 fi
                 stop_spinner
                 did_update=1
             fi
-            start_spinner apt "Install $pkg"
+            start_spinner apt "Installing $pkg"
             if ! sudo apt install -y "$pkg" &>/dev/null; then
                 err "apt: unable to install package: $pkg"
             fi
@@ -290,7 +290,7 @@ yum_install() {
         if rpm -q "$pkg" &>/dev/null; then
             info_nl yum "Package installed: $pkg $CHECK_MARK"
         else
-            start_spinner yum "Install $pkg"
+            start_spinner yum "Installing $pkg"
             if ! yum install -y "$pkg" &>/dev/null; then
                 err "yum: unable to install package: $pkg"
             fi
