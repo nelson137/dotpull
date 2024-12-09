@@ -1,0 +1,8 @@
+- name: Create user SSL Certificates directory
+  file: path='{{ ansible_user_dir }}/.ssl/certs' state=directory
+
+- name: Copy VU private key chain file
+  copy:
+    src: /mnt/c/certificates/vu-chain2021.pem
+    dest: '{{ ansible_user_dir }}/.ssl/certs/vu-chain2021.pem'
+    remote_src: true
