@@ -30,7 +30,7 @@
 - name: Install Homebrew
   when: not brew_installation.stat.exists
   vars:
-    homebrew_install_script_sudoers_file_path: /etc/sudoers.d/homebrew-install
+    homebrew_install_sudoers_file_path: /etc/sudoers.d/homebrew-install
   block:
 
   - name: Create temporary file for Homebrew Install Script
@@ -48,7 +48,7 @@
     become: true
     template:
       src: sudoers
-      dest: '{{ homebrew_install_script_sudoers_file_path }}'
+      dest: '{{ homebrew_install_sudoers_file_path }}'
     vars:
       username: '{{ ansible_user_id }}'
 
@@ -64,7 +64,7 @@
 
   - name: Remove Homebrew Install Script sudoers file
     become: true
-    file: path='{{ homebrew_install_script_sudoers_file_path }}' state=absent
+    file: path='{{ homebrew_install_sudoers_file_path }}' state=absent
 
 - name: Update Homebrew
   command: '{{ brew_path }} update --force'
