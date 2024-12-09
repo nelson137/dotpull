@@ -54,9 +54,7 @@
 
   - name: Install sudoers file for Homebrew Install Script execution
     become: true
-    template:
-      src: sudoers
-      dest: '{{ homebrew_install_sudoers_file_path }}'
+    template: src=sudoers.j2 dest='{{ homebrew_install_sudoers_file_path }}'
     vars:
       username: '{{ ansible_user_id }}'
 
