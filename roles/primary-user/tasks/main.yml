@@ -13,7 +13,7 @@
       user:
         name: '{{ primary_user }}'
         append: true
-        groups: adm,admin,systemd-journal
+        groups: adm,systemd-journal
 
     - name: Add user to groups (Amazon)
       when: ansible_distribution == 'Amazon'
