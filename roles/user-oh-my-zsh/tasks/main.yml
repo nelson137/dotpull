@@ -2,25 +2,29 @@
   stat: path='{{ ansible_user_dir }}/.oh-my-zsh' get_checksum=false get_mime=false
   register: omz_dir
 
-- name: Oh My Zsh
-  when: omz_dir.stat.exists == false
-  vars:
-    omz_installer_path: /tmp/install-ohmyzsh
+- when: not omz_dir.stat.exists
   block:
 
-    - name: Download installer
+    - name: Create a temporary file for the Install Script
+      tempfile:
+        suffix: .rustup-install-script
+      register: omz_install_script_tempfile
+
+    - name: Download the Install Script to the temporary file
       get_url:
         url: https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh
-        dest: '{{ omz_installer_path }}'
+        dest: '{{ omz_install_script_tempfile.path }}'
         mode: '0755'
 
-    - name: Execute installer
+    - name: Run the Install Script
       command:
-        cmd: '{{ omz_installer_path }} --unattended'
+        cmd: '{{ omz_install_script_tempfile.path }} --unattended'
         creates: '{{ ansible_user_dir }}/.oh-my-zsh'
 
-    - name: Remove installer
-      file: path='{{ omz_installer_path }}' state=absent
+  always:
+
+    - name: Remove the Install Script temporary file
+      file: path='{{ omz_install_script_tempfile.path }}' state=absent
 
 - name: Change user shell to zsh
   become: true
