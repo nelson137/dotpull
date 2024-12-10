@@ -5,6 +5,7 @@ set -eo pipefail
 # Cache sudo password
 sudo -l mkdir &>/dev/null
 
+DID_FETCH_PLAYBOOKS=
 PLAYBOOKS=()
 PLAYBOOK_CHOICE=
 REPO='nelson137/dotpull'
@@ -137,6 +138,14 @@ _python() {
     python3 -c "$*"
 }
 
+in_git_repo() {
+    git rev-parse --is-inside-work-tree &>/dev/null
+}
+
+in_self() {
+    in_git_repo && git ls-remote --get-url | grep -q "$REPO"
+}
+
 # endregion utils
 
 ##################################################
@@ -205,36 +214,49 @@ get_os_info() {
 }
 
 get_playbook_list() {
+    [ -n "$DID_FETCH_PLAYBOOKS" ] && return
+
     start_spinner github 'Fetching playbooks'
+
     local playbooks name
     playbooks="$(_get_playbooks_from_head 2>&1)" || err "$playbooks"
+
     while read name; do
         PLAYBOOKS+=( "$name" )
     done <<< "$playbooks"
+
     stop_spinner
+
+    DID_FETCH_PLAYBOOKS=1
 }
 
 validate_playbook() {
-    local choice="$1"; shift
-    local playbooks=( "$@" )
-    while [ $# -gt 0 ]; do
-        [ "$choice" = "$1" ] && return
-        shift
+    local choice="$1" pb; shift
+
+    get_playbook_list
+
+    for pb in "${PLAYBOOKS[@]}"; do
+        [ "$pb" = "$choice" ] && return
     done
-    err "playbook must be one of: ${playbooks[@]}"
+
+    err "playbook must be one of: ${PLAYBOOKS[@]}"
 }
 
 _cleanup_color_prompt() { printf -- "$RESET\n" >&2; }
 
 select_playbook() {
     local i selection
-    local -a books=( "$@" )
+
+    get_playbook_list
+    set -- "${PLAYBOOKS[@]}"
+
+    printf '\n'
 
     while true; do
         echo 'Select a playbook:' >&2
         echo '==================' >&2
         for (( i=0; i<$#; i++ )); do
-            echo "  $i) ${books[$i]}" >&2
+            echo "  $i) ${PLAYBOOKS[$i]}" >&2
         done
         printf '\n' >&2
 
@@ -250,7 +272,9 @@ select_playbook() {
         printf '\n' >&2
     done
 
-    PLAYBOOK_CHOICE="${books[$selection]}"
+    printf '\n'
+
+    PLAYBOOK_CHOICE="${PLAYBOOKS[$selection]}"
 }
 
 install_packages() {
@@ -374,15 +398,17 @@ main() {
     install_uv
     PATH="$HOME/.local/bin:$PATH"
 
-    get_playbook_list
-
     # Validate the given playbook or have user choose one
     if [ -n "$PLAYBOOK_CHOICE" ]; then
-        validate_playbook "$PLAYBOOK_CHOICE" "${PLAYBOOKS[@]}"
+        if in_self && [ -f "$PLAYBOOK_CHOICE" ]; then
+            # In self repo and the playbook file exists, no need to fetch
+            # playbooks from the GitHub API or validate.
+            :
+        else
+            validate_playbook "$PLAYBOOK_CHOICE"
+        fi
     else
-        printf '\n'
-        select_playbook "${PLAYBOOKS[@]}" || return 0
-        printf '\n'
+        select_playbook || return 0
     fi
 
     local title="Executing playbook: $PLAYBOOK_CHOICE"
