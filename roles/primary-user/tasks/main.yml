@@ -2,11 +2,15 @@
   block:
 
     - name: Create account
+      vars:
+        # https://docs.ansible.com/ansible/latest/collections/ansible/builtin/user_module.html#parameter-ssh_key_comment
+        default_ssh_key_comment: 'ansible-generated on {{ ansible_hostname }}'
       user:
         name: '{{ primary_user }}'
         create_home: true
         generate_ssh_key: true
         ssh_key_type: ed25519
+        ssh_key_comment: '{{ ssh_key_comment | default(default_ssh_key_comment) }}'
 
     - name: Add user to groups (Debian)
       when: ansible_os_family == 'Debian'
