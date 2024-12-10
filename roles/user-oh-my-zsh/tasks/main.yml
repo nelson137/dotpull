@@ -1,19 +1,9 @@
-- name: Install zsh
-  become: true
-  apt: name=zsh state=latest
-
-- name: Get user info
-  user: name='{{ primary_user }}' state=present
-  register: user_info
-
 - name: Check if already installed
-  stat: path='{{ user_info.home }}/.oh-my-zsh' get_checksum=false get_mime=false
+  stat: path='{{ ansible_user_dir }}/.oh-my-zsh' get_checksum=false get_mime=false
   register: omz_dir
 
 - name: Oh My Zsh
   when: omz_dir.stat.exists == false
-  become: true
-  become_user: '{{ user_info.name }}'
   vars:
     omz_installer_path: /tmp/install-ohmyzsh
   block:
@@ -27,11 +17,11 @@
     - name: Execute installer
       command:
         cmd: '{{ omz_installer_path }} --unattended'
-        creates: '{{ user_info.home }}/.oh-my-zsh'
+        creates: '{{ ansible_user_dir }}/.oh-my-zsh'
 
     - name: Remove installer
       file: path='{{ omz_installer_path }}' state=absent
 
 - name: Change user shell to zsh
   become: true
-  user: name='{{ user_info.name }}' shell=/usr/bin/zsh
+  user: name='{{ ansible_user_id }}' shell=/usr/bin/zsh
