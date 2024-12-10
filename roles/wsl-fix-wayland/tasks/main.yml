@@ -1,0 +1,21 @@
+# See https://github.com/microsoft/WSL/issues/11261#issuecomment-2011901398
+- when: ansible_kernel is match('.*\\bWSL2')
+  become: true
+  vars:
+    user_rt_dir: /usr/lib/systemd/system/user-runtime-dir@.service.d
+  block:
+
+    - name: Create User Runtime Dir Service directory
+      file: path='{{ user_rt_dir }}' state=directory
+
+    - name: Copy the User Runtime Dir Service override file
+      copy: src=override.conf dest='{{ user_rt_dir }}/override.conf'
+      register: install_user_rt_override
+
+    - name: Reload Systemd
+      when: install_user_rt_override.changed
+      command: systemctl daemon-reload
+
+    - name: Restart the User Runtime Dir Service
+      when: install_user_rt_override.changed
+      service: name='user-runtime-dir@{{ ansible_user_uid }}' state=restarted
