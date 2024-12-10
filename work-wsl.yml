@@ -32,6 +32,7 @@
         - bat
         - btop
         - bun
+        - cmake # Needed to build `telescope-fzf-native.nvim`
         - curl
         - deno
         - fd
