@@ -1,0 +1,9 @@
+- name: Create symbolic links to Wayland runtime
+  become: true
+  file:
+    state: link
+    path: '/var/run/user/{{ ansible_user_uid }}/{{ item }}'
+    src: '/mnt/wslg/runtime-dir/{{ item }}'
+  loop:
+    - wayland-0
+    - wayland-0.lock
