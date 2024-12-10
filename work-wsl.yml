@@ -6,6 +6,7 @@
     user_work_email: nelson.earle@veteransunited.com
   roles:
     - wsl-config
+    - wsl-fix-wayland
     - wsl-windows-profile-symlink
     - user-work-certificate
     - name: install-packages
