@@ -29,6 +29,7 @@
       work_ssh_key_comment: '{{ user_work_email }}'
     - user-hushlogin
     - user-selected-editor
+    - user-oh-my-zsh
     - name: user-homebrew
       brew_tap:
         - oven-sh/bun
