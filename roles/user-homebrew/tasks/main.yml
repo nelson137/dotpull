@@ -101,6 +101,19 @@
     HOMEBREW_NO_AUTO_UPDATE: 1
   loop: '{{ brew_tap | default([]) }}'
 
+- name: Get current brew formula
+  command: 'brew list --formula -1'
+  environment:
+    PATH: '/usr/local/bin:/opt/homebrew/bin:/home/linuxbrew/.linuxbrew/bin:{{ ansible_env["PATH"] }}'
+  changed_when: false
+  register: homebrew_installed_formula
+
 - name: Install packages
-  when: brew_packages is defined and brew_packages
-  homebrew: name='{{ brew_packages }}' state=present update_homebrew=false
+  when: item not in homebrew_installed_formula.stdout_lines
+  shell:
+    cmd: >
+      ulimit -n 20480;
+      HOMEBREW_NO_AUTO_UPDATE=1 brew install {{ item }};
+  environment:
+    PATH: '/usr/local/bin:/opt/homebrew/bin:/home/linuxbrew/.linuxbrew/bin:{{ ansible_env["PATH"] }}'
+  loop: '{{ brew_packages | default([]) }}'
