@@ -2,7 +2,8 @@
 - hosts: all
   vars:
     win_username: nelson.earle
-    user_email: nelson.earle@veteransunited.com
+    user_personal_email: nelson.earle137@gmail.com
+    user_work_email: nelson.earle@veteransunited.com
   roles:
     - wsl-config
     - wsl-windows-profile-symlink
@@ -22,7 +23,10 @@
     - google-chrome
     - name: primary-user
       primary_user: '{{ ansible_user_id }}'
-      ssh_key_comment: '{{ user_email }}'
+      generate_personal_ssh_key: true
+      personal_ssh_key_comment: '{{ user_personal_email }}'
+      generate_work_ssh_key: true
+      work_ssh_key_comment: '{{ user_work_email }}'
     - user-hushlogin
     - user-selected-editor
     - name: user-homebrew
