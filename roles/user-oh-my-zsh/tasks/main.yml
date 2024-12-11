@@ -18,7 +18,11 @@
 
     - name: Run the Install Script
       command:
-        cmd: '{{ omz_install_script_tempfile.path }} --unattended'
+        # `--unattended` is also sets `--skip-chsh` (don't change user shell)
+        # and `RUNZSH=no` (don't run zsh after installation). Additionally, we
+        # don't want to change the user shell here since it always prompts for
+        # user confirmation.
+        cmd: '{{ omz_install_script_tempfile.path }} --unattended --keep-zshrc'
         creates: '{{ ansible_user_dir }}/.oh-my-zsh'
 
   always:
