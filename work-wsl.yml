@@ -39,6 +39,7 @@
         - btop
         - bun
         - cmake # Needed to build `telescope-fzf-native.nvim`
+        - cmake-docs
         - curl
         - deno
         - fd
@@ -52,8 +53,10 @@
         - graphviz
         - hadolint
         - hyperfine
+        - inotify-tools # Used by neovim
         - jq
         - lazygit
+        - lld # Used to be packaged with llvm
         - llvm
         - neovim
         - nmap
